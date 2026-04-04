@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mapa de Eventos</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    :root {
+      --bg: #f4efe8;
+      --panel: rgba(255, 252, 247, 0.92);
+      --ink: #1f2933;
+      --muted: #52606d;
+      --accent: #c2410c;
+      --accent-soft: #fed7aa;
+      --line: rgba(31, 41, 51, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(194, 65, 12, 0.12), transparent 28%),
+        linear-gradient(180deg, #f8f4ee 0%, var(--bg) 100%);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      padding: 28px 22px;
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.05;
+    }
+    .summary {
+      margin: 18px 0 24px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.7);
+    }
+    .legend {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .filters {
+      display: grid;
+      gap: 14px;
+      margin: 0 0 18px;
+    }
+    .filter-group {
+      display: grid;
+      gap: 8px;
+    }
+    .filters label {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .filters select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--ink);
+      font: inherit;
+    }
+    .filters select[multiple] {
+      min-height: 144px;
+      padding: 8px;
+    }
+    .filters-help {
+      margin: -2px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      box-shadow: inset 0 0 0 1px rgba(31, 41, 51, 0.12);
+    }
+    .event-list {
+      display: grid;
+      gap: 14px;
+    }
+    .card {
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(31, 41, 51, 0.06);
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(31, 41, 51, 0.1);
+    }
+    .card.is-active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.14), 0 14px 34px rgba(31, 41, 51, 0.1);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 16px;
+      flex: 1;
+    }
+    .card-date {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .card-chevron {
+      flex-shrink: 0;
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--muted);
+      transition: transform 0.2s ease;
+    }
+    .card.is-open .card-chevron {
+      transform: rotate(180deg);
+    }
+    .card-details {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.28s ease, padding-top 0.28s ease;
+      padding-top: 0;
+    }
+    .card.is-open .card-details {
+      max-height: 400px;
+      padding-top: 12px;
+    }
+    .meta {
+      margin: 4px 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .status {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        max-height: 42vh;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      #map {
+        height: 58vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <p class="eyebrow">Planilha de eventos</p>
+      <h1>Mapa dos eventos</h1>
+      <div class="summary">
+        <div>Total de registros: <span id="summary-total">5</span></div>
+        <div>Enderecos geocodificados: <span id="summary-geocoded">4</span></div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch" style="background:#2f855a"></span> Pequeno porte ate 1.000 pessoas</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#d97706"></span> Medio porte ate 5.000 pessoas</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#c53030"></span> Grande porte acima de 5.000 pessoas</div>
+          <div class="legend-item"><span class="legend-swatch" style="background:#64748b"></span> Publico nao informado</div>
+        </div>
+      </div>
+      <div class="filters">
+        <div class="filter-group">
+          <label for="year-filter">Filtrar por ano</label>
+          <select id="year-filter">
+            <option value="">Todos os anos</option>
+            <option value="2026">2026</option>
+<option value="2027">2027</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="month-filter">Filtrar por mes</label>
+          <select id="month-filter" multiple>
+            <option value="3">Marco</option>
+<option value="5">Maio</option>
+          </select>
+          <p class="filters-help">Use Command no macOS para selecionar mais de um mes.</p>
+        </div>
+      </div>
+      <div class="event-list">
+        <article class="card" data-event-index="0" data-month="5" data-year="2026" data-date-order="2026-05-01" style="border-left: 6px solid #d97706;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">01/05/2026</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Maio</p><p class="meta"><strong>Ano:</strong> 2026</p><p class="meta"><strong>Endereco:</strong> RUA JULIO DE CASTILHO, 133 BAIRRO CINQUENTENÁRIO BELO HORIZONTE/MG</p><p class="meta"><strong>Publico:</strong> 5000</p><p class="meta"><strong>Faixa:</strong> Medio porte</p><span class="status">Localizado no mapa</span></div></article>
+<article class="card" data-event-index="1" data-month="5" data-year="2026" data-date-order="2026-05-10" style="border-left: 6px solid #c53030;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">10/05/2026</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Maio</p><p class="meta"><strong>Ano:</strong> 2026</p><p class="meta"><strong>Endereco:</strong> EXPOMINAS</p><p class="meta"><strong>Publico:</strong> 15000</p><p class="meta"><strong>Faixa:</strong> Grande porte</p><span class="status">Localizado no mapa</span></div></article>
+<article class="card" data-event-index="2" data-month="5" data-year="2026" data-date-order="2026-05-11" style="border-left: 6px solid #c53030;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">11/05/2026</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Maio</p><p class="meta"><strong>Ano:</strong> 2026</p><p class="meta"><strong>Endereco:</strong> MINEIRINHO</p><p class="meta"><strong>Publico:</strong> 35000</p><p class="meta"><strong>Faixa:</strong> Grande porte</p><span class="status">Localizado no mapa</span></div></article>
+<article class="card" data-event-index="3" data-month="5" data-year="2026" data-date-order="2026-05-12" style="border-left: 6px solid #2f855a;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">12/05/2026</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Maio</p><p class="meta"><strong>Ano:</strong> 2026</p><p class="meta"><strong>Endereco:</strong> Bar do Lair</p><p class="meta"><strong>Publico:</strong> 1000</p><p class="meta"><strong>Faixa:</strong> Pequeno porte</p><span class="status">Endereco nao localizado</span></div></article>
+<article class="card" data-event-index="4" data-month="3" data-year="2027" data-date-order="2027-03-01" style="border-left: 6px solid #c53030;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">01/03/2027</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Marco</p><p class="meta"><strong>Ano:</strong> 2027</p><p class="meta"><strong>Endereco:</strong> MINEIRÃO</p><p class="meta"><strong>Publico:</strong> 70000</p><p class="meta"><strong>Faixa:</strong> Grande porte</p><span class="status">Localizado no mapa</span></div></article>
+      </div>
+    </aside>
+    <main id="map"></main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const registros = [{"DATA": "01/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "RUA JULIO DE CASTILHO, 133 BAIRRO CINQUENTENÁRIO BELO HORIZONTE/MG", "ESTIMATIVA PUBLICO": "5000", "latitude": -19.9577614, "longitude": -43.9829553, "endereco_encontrado": "Rua Júlio de Castilho, Cinquentenário, Regional Oeste, Belo Horizonte, Minas Gerais, 30580-353, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 5000, "faixa_publico": "Medio porte", "cor_marcador": "#d97706", "raio_marcador": 11, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-01"}, {"DATA": "10/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "EXPOMINAS", "ESTIMATIVA PUBLICO": "15000", "latitude": -19.9303191, "longitude": -43.989266, "endereco_encontrado": "Expominas, 6200, Avenida Amazonas, Gameleira, Regional Oeste, Belo Horizonte, Minas Gerais, 30510-090, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 15000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-10"}, {"DATA": "11/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "MINEIRINHO", "ESTIMATIVA PUBLICO": "35000", "latitude": -19.862011, "longitude": -43.9727213, "endereco_encontrado": "Estádio Jornalista Felipe Drummond, 1000, Avenida Antônio Abrahão Caram, São Luiz, São José, Pampulha, Belo Horizonte, Minas Gerais, 31275-000, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 35000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-11"}, {"DATA": "12/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "Bar do Lair", "ESTIMATIVA PUBLICO": "1000", "latitude": null, "longitude": null, "endereco_encontrado": "", "geocodificado": false, "publico_valor": 1000, "faixa_publico": "Pequeno porte", "cor_marcador": "#2f855a", "raio_marcador": 8, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-12"}, {"DATA": "01/03/2027", "DESCRICAO": "EVENTO", "ENDERECO": "MINEIRÃO", "ESTIMATIVA PUBLICO": "70000", "latitude": -19.8659115, "longitude": -43.9710434, "endereco_encontrado": "Estádio Governador Magalhães Pinto, 1001, Avenida Antônio Abrahão Caram, São Luiz, Campus UFMG, Pampulha, Belo Horizonte, Minas Gerais, 31275-000, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 70000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 3, "mes_nome": "Marco", "ano_numero": 2027, "data_ordem": "2027-03-01"}];
+    const map = L.map('map').setView([-19.904000749999998, -43.9789965], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const bounds = [];
+    const markers = new Map();
+    const yearFilter = document.getElementById('year-filter');
+    const monthFilter = document.getElementById('month-filter');
+    const eventList = document.querySelector('.event-list');
+    const totalSummary = document.getElementById('summary-total');
+    const geocodedSummary = document.getElementById('summary-geocoded');
+
+    function ativarCard(index) {
+      document.querySelectorAll('[data-event-index]').forEach((card) => {
+        card.classList.toggle('is-active', Number(card.dataset.eventIndex) === index);
+      });
+    }
+
+    function mesesSelecionados() {
+      return Array.from(monthFilter.selectedOptions).map((option) => option.value).filter(Boolean);
+    }
+
+    function ordenarCardsVisiveis() {
+      const cards = Array.from(document.querySelectorAll('[data-event-index]'));
+      cards.sort((cardA, cardB) => {
+        const itemA = registros[Number(cardA.dataset.eventIndex)];
+        const itemB = registros[Number(cardB.dataset.eventIndex)];
+        const chaveA = itemA.data_ordem || '9999-99-99';
+        const chaveB = itemB.data_ordem || '9999-99-99';
+        return chaveA.localeCompare(chaveB);
+      });
+      cards.forEach((card) => eventList.appendChild(card));
+    }
+
+    function aplicarFiltro() {
+      const anoSelecionado = yearFilter.value;
+      const meses = mesesSelecionados();
+      const boundsFiltrados = [];
+      let totalVisivel = 0;
+      let geocodificadosVisiveis = 0;
+
+      document.querySelectorAll('[data-event-index]').forEach((card) => {
+        const index = Number(card.dataset.eventIndex);
+        const item = registros[index];
+        const marker = markers.get(index);
+        const anoValido = !anoSelecionado || String(item.ano_numero || '') === anoSelecionado;
+        const mesValido = meses.length === 0 || meses.includes(String(item.mes_numero || ''));
+        const visivel = anoValido && mesValido;
+
+        card.style.display = visivel ? '' : 'none';
+        if (!visivel) {
+          card.classList.remove('is-active');
+        }
+
+        if (marker) {
+          if (visivel) {
+            marker.addTo(map);
+            boundsFiltrados.push(marker.getLatLng());
+            geocodificadosVisiveis += 1;
+          } else {
+            marker.remove();
+          }
+        }
+
+        if (visivel) {
+          totalVisivel += 1;
+        }
+      });
+
+      ordenarCardsVisiveis();
+      totalSummary.textContent = String(totalVisivel);
+      geocodedSummary.textContent = String(geocodificadosVisiveis);
+
+      if (boundsFiltrados.length > 0) {
+        map.fitBounds(boundsFiltrados, { padding: [30, 30] });
+      } else {
+        map.setView([-19.904000749999998, -43.9789965], 12);
+      }
+    }
+
+    registros.forEach((item, index) => {
+      if (item.latitude === null || item.longitude === null) {
+        return;
+      }
+
+      const popup = `
+        <strong>${item.DESCRICAO || 'Evento'}</strong><br>
+        Data: ${item.DATA || '-'}<br>
+        Endereco: ${item.ENDERECO || '-'}<br>
+        Publico estimado: ${item['ESTIMATIVA PUBLICO'] || '-'}<br>
+        Faixa: ${item.faixa_publico || '-'}
+      `;
+
+      const marker = L.circleMarker([item.latitude, item.longitude], {
+        radius: item.raio_marcador || 8,
+        color: item.cor_marcador || '#64748b',
+        fillColor: item.cor_marcador || '#64748b',
+        fillOpacity: 0.85,
+        weight: 2
+      }).addTo(map).bindPopup(popup);
+      marker.on('click', () => ativarCard(index));
+      markers.set(index, marker);
+      bounds.push([item.latitude, item.longitude]);
+    });
+
+    document.querySelectorAll('[data-event-index]').forEach((card) => {
+      const header = card.querySelector('.card-header');
+
+      header.addEventListener('click', () => {
+        const isOpen = card.classList.contains('is-open');
+        card.classList.toggle('is-open', !isOpen);
+      });
+
+      card.addEventListener('click', (evt) => {
+        if (evt.target.closest('.card-header')) { return; }
+        const index = Number(card.dataset.eventIndex);
+        const marker = markers.get(index);
+
+        ativarCard(index);
+        if (!marker) { return; }
+
+        const latLng = marker.getLatLng();
+        map.flyTo(latLng, Math.max(map.getZoom(), 15), { duration: 0.6 });
+        marker.openPopup();
+      });
+    });
+
+    document.querySelectorAll('.card-header').forEach((header) => {
+      header.addEventListener('click', (evt) => {
+        const card = header.closest('[data-event-index]');
+        const index = Number(card.dataset.eventIndex);
+        const marker = markers.get(index);
+
+        ativarCard(index);
+        if (!marker) { return; }
+
+        const latLng = marker.getLatLng();
+        map.flyTo(latLng, Math.max(map.getZoom(), 15), { duration: 0.6 });
+        marker.openPopup();
+      });
+    });
+
+    yearFilter.addEventListener('change', aplicarFiltro);
+    monthFilter.addEventListener('change', aplicarFiltro);
+
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [30, 30] });
+    }
+    aplicarFiltro();
+  </script>
+</body>
+</html>
