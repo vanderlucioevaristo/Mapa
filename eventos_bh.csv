@@ -1,0 +1,52 @@
+DATA;DESCRICAO;ENDERECO;ESTIMATIVAPUBLICO
+01/Jan/2026;Feira cultural;Avenida Afonso Pena, 1000, Centro, Belo Horizonte/MG;350
+02/Jan/2026;Show musical;Rua da Bahia, 1500, Lourdes, Belo Horizonte/MG;1200
+03/Jan/2026;Evento gastronômico;Rua Espírito Santo, 900, Centro, Belo Horizonte/MG;500
+04/Jan/2026;Exposição de arte;Avenida Álvares Cabral, 400, Centro, Belo Horizonte/MG;200
+05/Jan/2026;Festival de rua;Rua dos Timbiras, 1200, Funcionários, Belo Horizonte/MG;800
+06/Jan/2026;Apresentação teatral;Rua Rio de Janeiro, 600, Centro, Belo Horizonte/MG;300
+07/Jan/2026;Feira de livros;Avenida Brasil, 1300, Funcionários, Belo Horizonte/MG;450
+08/Jan/2026;Evento esportivo;Avenida Antônio Carlos, 3000, Pampulha, Belo Horizonte/MG;2000
+09/Jan/2026;Festival gastronômico;Rua Sapucaí, 500, Floresta, Belo Horizonte/MG;600
+10/Jan/2026;Show ao vivo;Rua Pium-í, 800, Sion, Belo Horizonte/MG;700
+11/Jan/2026;Feira artesanal;Avenida Amazonas, 2000, Centro, Belo Horizonte/MG;350
+12/Jan/2026;Evento corporativo;Rua Paraíba, 1100, Savassi, Belo Horizonte/MG;400
+13/Jan/2026;Exposição cultural;Rua Curitiba, 700, Centro, Belo Horizonte/MG;250
+14/Jan/2026;Festival de música;Avenida do Contorno, 5000, Funcionários, Belo Horizonte/MG;1500
+15/Jan/2026;Apresentação artística;Rua Fernandes Tourinho, 900, Savassi, Belo Horizonte/MG;300
+16/Jan/2026;Feira orgânica;Rua Grão Mogol, 120, Carmo, Belo Horizonte/MG;200
+17/Jan/2026;Evento educacional;Avenida Cristiano Machado, 4000, União, Belo Horizonte/MG;600
+18/Jan/2026;Mostra de cinema;Rua Gonçalves Dias, 1600, Lourdes, Belo Horizonte/MG;450
+19/Jan/2026;Festival infantil;Rua Sergipe, 1000, Savassi, Belo Horizonte/MG;350
+20/Jan/2026;Evento tecnológico;Avenida Raja Gabaglia, 3000, Estoril, Belo Horizonte/MG;900
+21/Jan/2026;Feira cultural;Rua Padre Rolim, 500, Santa Efigênia, Belo Horizonte/MG;300
+22/Jan/2026;Show musical;Rua Aimorés, 1400, Lourdes, Belo Horizonte/MG;1100
+23/Jan/2026;Evento gastronômico;Rua Tomé de Souza, 800, Savassi, Belo Horizonte/MG;500
+24/Jan/2026;Exposição de arte;Rua Alagoas, 900, Funcionários, Belo Horizonte/MG;200
+25/Jan/2026;Festival de rua;Rua Pernambuco, 1000, Savassi, Belo Horizonte/MG;850
+26/Jan/2026;Apresentação teatral;Rua Tupinambás, 300, Centro, Belo Horizonte/MG;320
+27/Jan/2026;Feira de livros;Rua dos Guajajaras, 600, Centro, Belo Horizonte/MG;400
+28/Jan/2026;Evento esportivo;Avenida Silva Lobo, 2500, Nova Granada, Belo Horizonte/MG;1800
+29/Jan/2026;Festival gastronômico;Rua Mármore, 200, Santa Tereza, Belo Horizonte/MG;550
+30/Jan/2026;Show ao vivo;Rua Levindo Lopes, 150, Savassi, Belo Horizonte/MG;700
+31/Jan/2026;Feira artesanal;Avenida Prudente de Morais, 1800, Cidade Jardim, Belo Horizonte/MG;350
+01/Fev/2026;Evento corporativo;Rua Professor Moraes, 200, Funcionários, Belo Horizonte/MG;450
+02/Fev/2026;Exposição cultural;Rua Cláudio Manoel, 300, Funcionários, Belo Horizonte/MG;250
+03/Fev/2026;Festival de música;Avenida Andradas, 3500, Santa Tereza, Belo Horizonte/MG;1400
+04/Fev/2026;Apresentação artística;Rua Sergipe, 700, Savassi, Belo Horizonte/MG;300
+05/Fev/2026;Feira orgânica;Rua Outono, 400, Cruzeiro, Belo Horizonte/MG;200
+06/Fev/2026;Evento educacional;Avenida Pedro II, 2000, Carlos Prates, Belo Horizonte/MG;600
+07/Fev/2026;Mostra de cinema;Rua São Paulo, 800, Centro, Belo Horizonte/MG;450
+08/Fev/2026;Festival infantil;Rua Carangola, 150, Santo Antônio, Belo Horizonte/MG;350
+09/Fev/2026;Evento tecnológico;Avenida Barão Homem de Melo, 4500, Estoril, Belo Horizonte/MG;900
+10/Fev/2026;Feira cultural;Rua Ceará, 600, Funcionários, Belo Horizonte/MG;300
+11/Fev/2026;Show musical;Rua Platina, 1400, Calafate, Belo Horizonte/MG;1100
+12/Fev/2026;Evento gastronômico;Rua Jacuí, 900, Floresta, Belo Horizonte/MG;500
+13/Fev/2026;Exposição de arte;Rua Niquelina, 1200, Santa Efigênia, Belo Horizonte/MG;200
+14/Fev/2026;Festival de rua;Rua Conselheiro Rocha, 700, Santa Tereza, Belo Horizonte/MG;850
+15/Fev/2026;Apresentação teatral;Rua Ituiutaba, 300, Prado, Belo Horizonte/MG;320
+16/Fev/2026;Feira de livros;Rua Desembargador Barcelos, 600, Nova Suíça, Belo Horizonte/MG;400
+17/Fev/2026;Evento esportivo;Avenida Dom Pedro I, 5000, Itapoã, Belo Horizonte/MG;1800
+18/Fev/2026;Festival gastronômico;Rua Pitangui, 200, Concórdia, Belo Horizonte/MG;550
+19/Fev/2026;Show ao vivo;Rua Jacuí, 150, Floresta, Belo Horizonte/MG;700
+20/Fev/2026;Feira artesanal;Avenida Fleming, 1800, Ouro Preto, Belo Horizonte/MG;350

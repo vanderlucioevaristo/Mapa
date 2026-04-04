@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gerar uma pagina HTML com mapa dos eventos lidos da planilha."""
+"""Gerar uma pagina HTML com mapa dos eventos lidos de um CSV local."""
 
 from __future__ import annotations
 
@@ -17,16 +17,13 @@ from urllib.request import Request, urlopen
 
 from listar_eventos_planilha import (
     criar_contexto_ssl,
-    extrair_gid,
-    extrair_sheet_id,
-    ler_registros,
-    montar_url_csv,
+  ler_registros_csv_local,
     padronizar_registros,
     salvar_json,
 )
 
 
-DEFAULT_URL = "https://docs.google.com/spreadsheets/d/1BiZyq9KeLk8pBc-N_AZWOq98KvUPOseGuQVBQAGQ4pk/edit?usp=sharing"
+DEFAULT_CSV_PATH = "eventos_bh.csv"
 DEFAULT_LAT = -19.9167
 DEFAULT_LON = -43.9345
 
@@ -50,12 +47,53 @@ MESES_PT_BR = {
   12: "Dezembro",
 }
 
+ABREV_MES_PARA_NUMERO = {
+  "JAN": 1,
+  "FEV": 2,
+  "MAR": 3,
+  "ABR": 4,
+  "MAI": 5,
+  "JUN": 6,
+  "JUL": 7,
+  "AGO": 8,
+  "SET": 9,
+  "OUT": 10,
+  "NOV": 11,
+  "DEZ": 12,
+}
+
+
+def parse_data_evento(texto: str) -> dt.datetime | None:
+  if not texto:
+    return None
+
+  formatos = [
+    "%d/%m/%Y",
+    "%d-%m-%Y",
+    "%Y-%m-%d",
+  ]
+  for formato in formatos:
+    try:
+      return dt.datetime.strptime(texto, formato)
+    except ValueError:
+      continue
+
+  partes = [parte.strip() for parte in texto.replace("-", "/").split("/")]
+  if len(partes) == 3 and partes[0].isdigit() and partes[2].isdigit():
+    mes = ABREV_MES_PARA_NUMERO.get(remover_acentos(partes[1]).upper()[:3])
+    if mes:
+      try:
+        return dt.datetime(int(partes[2]), mes, int(partes[0]))
+      except ValueError:
+        return None
+
+  return None
+
 
 def extrair_data_info(data: str) -> dict[str, object]:
   texto = (data or "").strip()
-  try:
-    data_evento = dt.datetime.strptime(texto, "%d/%m/%Y")
-  except ValueError:
+  data_evento = parse_data_evento(texto)
+  if data_evento is None:
     return {
       "mes_numero": None,
       "mes_nome": "Data invalida",
@@ -195,6 +233,25 @@ def carregar_cache_geocodificacao(caminho_json: str) -> dict[str, dict[str, obje
         }
 
     return cache
+
+
+def carregar_registros_existentes(caminho_json: str) -> list[dict[str, object]]:
+    try:
+        with open(caminho_json, "r", encoding="utf-8") as arquivo:
+            dados = json.load(arquivo)
+    except FileNotFoundError:
+        return []
+    except (OSError, json.JSONDecodeError):
+        return []
+
+    if not isinstance(dados, list):
+        return []
+
+    saida: list[dict[str, object]] = []
+    for item in dados:
+        if isinstance(item, dict):
+            saida.append(item)
+    return saida
 
 
 def buscar_coordenadas(endereco: str, contexto_ssl, cache: dict[str, dict[str, object]]) -> dict[str, object]:
@@ -749,14 +806,18 @@ def salvar_html(registros: list[dict[str, object]], caminho_saida: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Le a planilha de eventos, geocodifica os enderecos e gera uma pagina HTML com mapa."
+        description="Le um CSV local de eventos, geocodifica os enderecos e gera uma pagina HTML com mapa."
     )
-    parser.add_argument("url", nargs="?", default=DEFAULT_URL, help="URL da planilha do Google Sheets")
-    parser.add_argument("--gid", default=None, help="GID da aba (opcional).")
+    parser.add_argument(
+        "csv_path",
+        nargs="?",
+        default=DEFAULT_CSV_PATH,
+        help="Caminho do CSV local com os eventos.",
+    )
     parser.add_argument(
         "--insecure",
         action="store_true",
-        help="Desativa verificacao SSL para diagnostico local.",
+        help="Desativa verificacao SSL para diagnostico local (apenas para geocodificacao).",
     )
     parser.add_argument(
         "--html-output",
@@ -770,19 +831,15 @@ def main() -> int:
     )
 
     args = parser.parse_args()
-
-    try:
-        sheet_id = extrair_sheet_id(args.url)
-    except ValueError as exc:
-        print(f"Erro: {exc}", file=sys.stderr)
-        return 1
-
-    gid = args.gid or extrair_gid(args.url) or "0"
-    csv_url = montar_url_csv(sheet_id, gid)
     contexto_ssl = criar_contexto_ssl(args.insecure)
 
     try:
-        registros = padronizar_registros(ler_registros(csv_url, contexto_ssl))
+      registros = padronizar_registros(ler_registros_csv_local(args.csv_path))
+    except RuntimeError as exc:
+      print(f"Erro: {exc}", file=sys.stderr)
+      return 1
+
+    try:
         cache_geocodificacao = carregar_cache_geocodificacao(args.json_output)
         registros_geocodificados = enriquecer_registros(
             registros,

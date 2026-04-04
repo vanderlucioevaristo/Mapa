@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Ler e listar registros de uma planilha pública do Google Sheets."""
+"""Ler e listar registros de eventos a partir de um arquivo CSV local."""
 
 from __future__ import annotations
 
@@ -14,6 +14,9 @@ from typing import Iterable
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, urlparse
 from urllib.request import urlopen
+
+
+DEFAULT_CSV_PATH = "eventos_bh.csv"
 
 
 def extrair_sheet_id(url: str) -> str:
@@ -60,6 +63,11 @@ def ler_registros(csv_url: str, contexto_ssl: ssl.SSLContext) -> Iterable[dict[s
                 "A planilha parece nao estar publica para leitura. "
                 "No Google Sheets, ative o compartilhamento para 'Qualquer pessoa com o link'."
             ) from exc
+        if exc.code == 400:
+            raise RuntimeError(
+                "Falha HTTP ao acessar a planilha: 400. "
+                "Verifique se o gid da aba existe e se a URL da planilha esta correta."
+            ) from exc
         raise RuntimeError(f"Falha HTTP ao acessar a planilha: {exc.code}") from exc
     except ssl.SSLCertVerificationError as exc:
         raise RuntimeError(
@@ -71,6 +79,22 @@ def ler_registros(csv_url: str, contexto_ssl: ssl.SSLContext) -> Iterable[dict[s
 
     linhas = conteudo.splitlines()
     leitor = csv.DictReader(linhas)
+    return list(leitor)
+
+
+def ler_registros_csv_local(caminho_csv: str) -> Iterable[dict[str, str]]:
+    try:
+        with open(caminho_csv, "r", encoding="utf-8-sig") as arquivo:
+            conteudo = arquivo.read()
+    except OSError as exc:
+        raise RuntimeError(f"Falha ao ler o arquivo CSV local: {exc}") from exc
+
+    linhas = conteudo.splitlines()
+    if not linhas:
+        return []
+
+    delimitador = ";" if linhas[0].count(";") > linhas[0].count(",") else ","
+    leitor = csv.DictReader(linhas, delimiter=delimitador)
     return list(leitor)
 
 
@@ -138,23 +162,13 @@ def salvar_json(registros: Iterable[dict[str, str]], caminho_saida: str) -> None
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Le a planilha publica do Google Sheets e lista os registros."
+        description="Le um arquivo CSV local e lista os registros."
     )
     parser.add_argument(
-        "url",
+        "csv_path",
         nargs="?",
-        default="https://docs.google.com/spreadsheets/d/1BiZyq9KeLk8pBc-N_AZWOq98KvUPOseGuQVBQAGQ4pk/edit?usp=sharing",
-        help="URL da planilha do Google Sheets",
-    )
-    parser.add_argument(
-        "--gid",
-        default=None,
-        help="GID da aba (opcional). Se omitido, usa o gid da URL ou 0.",
-    )
-    parser.add_argument(
-        "--insecure",
-        action="store_true",
-        help="Desativa verificacao SSL (use apenas para diagnostico local).",
+        default=DEFAULT_CSV_PATH,
+        help="Caminho do arquivo CSV local com os eventos.",
     )
     parser.add_argument(
         "--json-output",
@@ -165,17 +179,7 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        sheet_id = extrair_sheet_id(args.url)
-    except ValueError as exc:
-        print(f"Erro: {exc}", file=sys.stderr)
-        return 1
-
-    gid = args.gid or extrair_gid(args.url) or "0"
-    csv_url = montar_url_csv(sheet_id, gid)
-    contexto_ssl = criar_contexto_ssl(args.insecure)
-
-    try:
-        registros = padronizar_registros(ler_registros(csv_url, contexto_ssl))
+        registros = padronizar_registros(ler_registros_csv_local(args.csv_path))
         imprimir_registros(registros)
         if args.json_output:
             salvar_json(registros, args.json_output)
