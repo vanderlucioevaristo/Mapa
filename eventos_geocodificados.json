@@ -88,5 +88,23 @@
     "mes_nome": "Marco",
     "ano_numero": 2027,
     "data_ordem": "2027-03-01"
+  },
+  {
+    "DATA": "01/03/2025",
+    "DESCRICAO": "EVENTO",
+    "ENDERECO": "BAR DO PEIXE BELO HORIZONTE",
+    "ESTIMATIVA PUBLICO": "300",
+    "latitude": null,
+    "longitude": null,
+    "endereco_encontrado": "",
+    "geocodificado": false,
+    "publico_valor": 300,
+    "faixa_publico": "Pequeno porte",
+    "cor_marcador": "#2f855a",
+    "raio_marcador": 8,
+    "mes_numero": 3,
+    "mes_nome": "Marco",
+    "ano_numero": 2025,
+    "data_ordem": "2025-03-01"
   }
 ]

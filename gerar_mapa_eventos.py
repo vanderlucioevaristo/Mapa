@@ -263,6 +263,10 @@ def montar_html(registros: list[dict[str, object]]) -> str:
       --line: rgba(31, 41, 51, 0.12);
     }}
     * {{ box-sizing: border-box; }}
+    html, body {{
+      height: 100%;
+      overflow: hidden;
+    }}
     body {{
       margin: 0;
       font-family: Georgia, "Times New Roman", serif;
@@ -274,9 +278,11 @@ def montar_html(registros: list[dict[str, object]]) -> str:
     .layout {{
       display: grid;
       grid-template-columns: 360px 1fr;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
     }}
     .sidebar {{
+      height: 100vh;
       padding: 28px 22px;
       background: var(--panel);
       backdrop-filter: blur(8px);
@@ -427,19 +433,21 @@ def montar_html(registros: list[dict[str, object]]) -> str:
     }}
     #map {{
       width: 100%;
-      height: 100vh;
+      height: 100%;
     }}
     @media (max-width: 900px) {{
       .layout {{
         grid-template-columns: 1fr;
+        grid-template-rows: 42vh 58vh;
+        height: 100vh;
       }}
       .sidebar {{
-        max-height: 42vh;
+        height: 42vh;
         border-right: 0;
         border-bottom: 1px solid var(--line);
       }}
       #map {{
-        height: 58vh;
+        height: 100%;
       }}
     }}
   </style>
@@ -447,7 +455,7 @@ def montar_html(registros: list[dict[str, object]]) -> str:
 <body>
   <div class=\"layout\">
     <aside class=\"sidebar\">
-      <p class=\"eyebrow\">Planilha de eventos</p>
+      <p class=\"eyebrow\">Mapa de Calor dos Eventos em Belo Horizonte</p>
       <h1>Mapa dos eventos</h1>
       <div class=\"summary\">
         <div>Total de registros: <span id=\"summary-total\">{len(registros)}</span></div>

@@ -16,6 +16,10 @@
       --line: rgba(31, 41, 51, 0.12);
     }
     * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
     body {
       margin: 0;
       font-family: Georgia, "Times New Roman", serif;
@@ -27,9 +31,11 @@
     .layout {
       display: grid;
       grid-template-columns: 360px 1fr;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
     }
     .sidebar {
+      height: 100vh;
       padding: 28px 22px;
       background: var(--panel);
       backdrop-filter: blur(8px);
@@ -180,19 +186,21 @@
     }
     #map {
       width: 100%;
-      height: 100vh;
+      height: 100%;
     }
     @media (max-width: 900px) {
       .layout {
         grid-template-columns: 1fr;
+        grid-template-rows: 42vh 58vh;
+        height: 100vh;
       }
       .sidebar {
-        max-height: 42vh;
+        height: 42vh;
         border-right: 0;
         border-bottom: 1px solid var(--line);
       }
       #map {
-        height: 58vh;
+        height: 100%;
       }
     }
   </style>
@@ -200,10 +208,10 @@
 <body>
   <div class="layout">
     <aside class="sidebar">
-      <p class="eyebrow">Planilha de eventos</p>
+      <p class="eyebrow">Mapa de Calor dos Eventos em Belo Horizonte</p>
       <h1>Mapa dos eventos</h1>
       <div class="summary">
-        <div>Total de registros: <span id="summary-total">5</span></div>
+        <div>Total de registros: <span id="summary-total">6</span></div>
         <div>Enderecos geocodificados: <span id="summary-geocoded">4</span></div>
         <div class="legend">
           <div class="legend-item"><span class="legend-swatch" style="background:#2f855a"></span> Pequeno porte ate 1.000 pessoas</div>
@@ -217,7 +225,8 @@
           <label for="year-filter">Filtrar por ano</label>
           <select id="year-filter">
             <option value="">Todos os anos</option>
-            <option value="2026">2026</option>
+            <option value="2025">2025</option>
+<option value="2026">2026</option>
 <option value="2027">2027</option>
           </select>
         </div>
@@ -236,6 +245,7 @@
 <article class="card" data-event-index="2" data-month="5" data-year="2026" data-date-order="2026-05-11" style="border-left: 6px solid #c53030;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">11/05/2026</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Maio</p><p class="meta"><strong>Ano:</strong> 2026</p><p class="meta"><strong>Endereco:</strong> MINEIRINHO</p><p class="meta"><strong>Publico:</strong> 35000</p><p class="meta"><strong>Faixa:</strong> Grande porte</p><span class="status">Localizado no mapa</span></div></article>
 <article class="card" data-event-index="3" data-month="5" data-year="2026" data-date-order="2026-05-12" style="border-left: 6px solid #2f855a;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">12/05/2026</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Maio</p><p class="meta"><strong>Ano:</strong> 2026</p><p class="meta"><strong>Endereco:</strong> Bar do Lair</p><p class="meta"><strong>Publico:</strong> 1000</p><p class="meta"><strong>Faixa:</strong> Pequeno porte</p><span class="status">Endereco nao localizado</span></div></article>
 <article class="card" data-event-index="4" data-month="3" data-year="2027" data-date-order="2027-03-01" style="border-left: 6px solid #c53030;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">01/03/2027</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Marco</p><p class="meta"><strong>Ano:</strong> 2027</p><p class="meta"><strong>Endereco:</strong> MINEIRÃO</p><p class="meta"><strong>Publico:</strong> 70000</p><p class="meta"><strong>Faixa:</strong> Grande porte</p><span class="status">Localizado no mapa</span></div></article>
+<article class="card" data-event-index="5" data-month="3" data-year="2025" data-date-order="2025-03-01" style="border-left: 6px solid #2f855a;"><div class="card-header"><div><h2>EVENTO</h2><p class="card-date">01/03/2025</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Mes:</strong> Marco</p><p class="meta"><strong>Ano:</strong> 2025</p><p class="meta"><strong>Endereco:</strong> BAR DO PEIXE BELO HORIZONTE</p><p class="meta"><strong>Publico:</strong> 300</p><p class="meta"><strong>Faixa:</strong> Pequeno porte</p><span class="status">Endereco nao localizado</span></div></article>
       </div>
     </aside>
     <main id="map"></main>
@@ -243,7 +253,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
-    const registros = [{"DATA": "01/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "RUA JULIO DE CASTILHO, 133 BAIRRO CINQUENTENÁRIO BELO HORIZONTE/MG", "ESTIMATIVA PUBLICO": "5000", "latitude": -19.9577614, "longitude": -43.9829553, "endereco_encontrado": "Rua Júlio de Castilho, Cinquentenário, Regional Oeste, Belo Horizonte, Minas Gerais, 30580-353, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 5000, "faixa_publico": "Medio porte", "cor_marcador": "#d97706", "raio_marcador": 11, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-01"}, {"DATA": "10/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "EXPOMINAS", "ESTIMATIVA PUBLICO": "15000", "latitude": -19.9303191, "longitude": -43.989266, "endereco_encontrado": "Expominas, 6200, Avenida Amazonas, Gameleira, Regional Oeste, Belo Horizonte, Minas Gerais, 30510-090, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 15000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-10"}, {"DATA": "11/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "MINEIRINHO", "ESTIMATIVA PUBLICO": "35000", "latitude": -19.862011, "longitude": -43.9727213, "endereco_encontrado": "Estádio Jornalista Felipe Drummond, 1000, Avenida Antônio Abrahão Caram, São Luiz, São José, Pampulha, Belo Horizonte, Minas Gerais, 31275-000, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 35000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-11"}, {"DATA": "12/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "Bar do Lair", "ESTIMATIVA PUBLICO": "1000", "latitude": null, "longitude": null, "endereco_encontrado": "", "geocodificado": false, "publico_valor": 1000, "faixa_publico": "Pequeno porte", "cor_marcador": "#2f855a", "raio_marcador": 8, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-12"}, {"DATA": "01/03/2027", "DESCRICAO": "EVENTO", "ENDERECO": "MINEIRÃO", "ESTIMATIVA PUBLICO": "70000", "latitude": -19.8659115, "longitude": -43.9710434, "endereco_encontrado": "Estádio Governador Magalhães Pinto, 1001, Avenida Antônio Abrahão Caram, São Luiz, Campus UFMG, Pampulha, Belo Horizonte, Minas Gerais, 31275-000, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 70000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 3, "mes_nome": "Marco", "ano_numero": 2027, "data_ordem": "2027-03-01"}];
+    const registros = [{"DATA": "01/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "RUA JULIO DE CASTILHO, 133 BAIRRO CINQUENTENÁRIO BELO HORIZONTE/MG", "ESTIMATIVA PUBLICO": "5000", "latitude": -19.9577614, "longitude": -43.9829553, "endereco_encontrado": "Rua Júlio de Castilho, Cinquentenário, Regional Oeste, Belo Horizonte, Minas Gerais, 30580-353, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 5000, "faixa_publico": "Medio porte", "cor_marcador": "#d97706", "raio_marcador": 11, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-01"}, {"DATA": "10/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "EXPOMINAS", "ESTIMATIVA PUBLICO": "15000", "latitude": -19.9303191, "longitude": -43.989266, "endereco_encontrado": "Expominas, 6200, Avenida Amazonas, Gameleira, Regional Oeste, Belo Horizonte, Minas Gerais, 30510-090, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 15000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-10"}, {"DATA": "11/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "MINEIRINHO", "ESTIMATIVA PUBLICO": "35000", "latitude": -19.862011, "longitude": -43.9727213, "endereco_encontrado": "Estádio Jornalista Felipe Drummond, 1000, Avenida Antônio Abrahão Caram, São Luiz, São José, Pampulha, Belo Horizonte, Minas Gerais, 31275-000, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 35000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-11"}, {"DATA": "12/05/2026", "DESCRICAO": "EVENTO", "ENDERECO": "Bar do Lair", "ESTIMATIVA PUBLICO": "1000", "latitude": null, "longitude": null, "endereco_encontrado": "", "geocodificado": false, "publico_valor": 1000, "faixa_publico": "Pequeno porte", "cor_marcador": "#2f855a", "raio_marcador": 8, "mes_numero": 5, "mes_nome": "Maio", "ano_numero": 2026, "data_ordem": "2026-05-12"}, {"DATA": "01/03/2027", "DESCRICAO": "EVENTO", "ENDERECO": "MINEIRÃO", "ESTIMATIVA PUBLICO": "70000", "latitude": -19.8659115, "longitude": -43.9710434, "endereco_encontrado": "Estádio Governador Magalhães Pinto, 1001, Avenida Antônio Abrahão Caram, São Luiz, Campus UFMG, Pampulha, Belo Horizonte, Minas Gerais, 31275-000, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 70000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14, "mes_numero": 3, "mes_nome": "Marco", "ano_numero": 2027, "data_ordem": "2027-03-01"}, {"DATA": "01/03/2025", "DESCRICAO": "EVENTO", "ENDERECO": "BAR DO PEIXE BELO HORIZONTE", "ESTIMATIVA PUBLICO": "300", "latitude": null, "longitude": null, "endereco_encontrado": "", "geocodificado": false, "publico_valor": 300, "faixa_publico": "Pequeno porte", "cor_marcador": "#2f855a", "raio_marcador": 8, "mes_numero": 3, "mes_nome": "Marco", "ano_numero": 2025, "data_ordem": "2025-03-01"}];
     const map = L.map('map').setView([-19.904000749999998, -43.9789965], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
