@@ -29,6 +29,12 @@ from listar_eventos_planilha import (
 DEFAULT_URL = "https://docs.google.com/spreadsheets/d/1BiZyq9KeLk8pBc-N_AZWOq98KvUPOseGuQVBQAGQ4pk/edit?usp=sharing"
 DEFAULT_LAT = -19.9167
 DEFAULT_LON = -43.9345
+
+
+class GeocodingRateLimitError(RuntimeError):
+    """Sinaliza que o servico de geocodificacao recusou a consulta por limite de taxa."""
+
+
 MESES_PT_BR = {
   1: "Janeiro",
   2: "Fevereiro",
@@ -151,9 +157,44 @@ def consultar_nominatim(consulta: str, contexto_ssl) -> list[dict[str, object]]:
         with urlopen(request, timeout=30, context=contexto_ssl) as resposta:
             return json.loads(resposta.read().decode("utf-8"))
     except HTTPError as exc:
+        if exc.code == 429:
+            raise GeocodingRateLimitError(
+                f"Limite de consultas atingido ao geocodificar endereco '{consulta}'."
+            ) from exc
         raise RuntimeError(f"Falha HTTP ao geocodificar endereco '{consulta}': {exc.code}") from exc
     except URLError as exc:
         raise RuntimeError(f"Erro de rede ao geocodificar endereco '{consulta}': {exc.reason}") from exc
+
+
+def carregar_cache_geocodificacao(caminho_json: str) -> dict[str, dict[str, object]]:
+    try:
+        with open(caminho_json, "r", encoding="utf-8") as arquivo:
+            dados = json.load(arquivo)
+    except FileNotFoundError:
+        return {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+    if not isinstance(dados, list):
+        return {}
+
+    cache: dict[str, dict[str, object]] = {}
+    for item in dados:
+        if not isinstance(item, dict):
+            continue
+
+        endereco = str(item.get("ENDERECO", "")).strip()
+        if not endereco:
+            continue
+
+        cache[endereco] = {
+            "latitude": item.get("latitude"),
+            "longitude": item.get("longitude"),
+            "endereco_encontrado": item.get("endereco_encontrado", ""),
+            "geocodificado": bool(item.get("geocodificado")),
+        }
+
+    return cache
 
 
 def buscar_coordenadas(endereco: str, contexto_ssl, cache: dict[str, dict[str, object]]) -> dict[str, object]:
@@ -187,9 +228,14 @@ def buscar_coordenadas(endereco: str, contexto_ssl, cache: dict[str, dict[str, o
     return resultado
 
 
-def enriquecer_registros(registros: list[dict[str, str]], contexto_ssl) -> list[dict[str, object]]:
-    cache: dict[str, dict[str, object]] = {}
+def enriquecer_registros(
+    registros: list[dict[str, str]],
+    contexto_ssl,
+    cache_inicial: dict[str, dict[str, object]] | None = None,
+) -> list[dict[str, object]]:
+    cache: dict[str, dict[str, object]] = dict(cache_inicial or {})
     saida: list[dict[str, object]] = []
+    limite_atingido = False
 
     for registro in registros:
         endereco = registro.get("ENDERECO", "").strip()
@@ -202,7 +248,20 @@ def enriquecer_registros(registros: list[dict[str, str]], contexto_ssl) -> list[
         dados_publico = classificar_publico(registro.get("ESTIMATIVA PUBLICO", ""))
         dados_data = extrair_data_info(registro.get("DATA", ""))
         if endereco:
-            geodados = buscar_coordenadas(endereco, contexto_ssl, cache)
+            if endereco in cache:
+                geodados = cache[endereco]
+            elif not limite_atingido:
+                try:
+                    geodados = buscar_coordenadas(endereco, contexto_ssl, cache)
+                except GeocodingRateLimitError:
+                    limite_atingido = True
+                    cache[endereco] = geodados
+                    print(
+                        "Aviso: limite de geocodificacao atingido; usando cache existente e seguindo sem novas consultas.",
+                        file=sys.stderr,
+                    )
+            else:
+                cache[endereco] = geodados
 
         item: dict[str, object] = dict(registro)
         item.update(geodados)
@@ -456,7 +515,7 @@ def montar_html(registros: list[dict[str, object]]) -> str:
   <div class=\"layout\">
     <aside class=\"sidebar\">
       <p class=\"eyebrow\">Mapa de Calor dos Eventos em Belo Horizonte</p>
-      <h1>Mapa dos eventos</h1>
+      <h1>Mapa de Calor dos Eventos em Belo Horizonte</h1>
       <div class=\"summary\">
         <div>Total de registros: <span id=\"summary-total\">{len(registros)}</span></div>
         <div>Enderecos geocodificados: <span id=\"summary-geocoded\">{total_geocodificados}</span></div>
@@ -701,7 +760,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--html-output",
-        default="mapa_eventos.html",
+        default="index.html",
         help="Arquivo HTML de saida.",
     )
     parser.add_argument(
@@ -724,7 +783,12 @@ def main() -> int:
 
     try:
         registros = padronizar_registros(ler_registros(csv_url, contexto_ssl))
-        registros_geocodificados = enriquecer_registros(registros, contexto_ssl)
+        cache_geocodificacao = carregar_cache_geocodificacao(args.json_output)
+        registros_geocodificados = enriquecer_registros(
+            registros,
+            contexto_ssl,
+            cache_inicial=cache_geocodificacao,
+        )
         salvar_json(registros_geocodificados, args.json_output)
         salvar_html(registros_geocodificados, args.html_output)
     except RuntimeError as exc:
