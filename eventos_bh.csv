@@ -1,11 +1,11 @@
 DATA;DESCRICAO;ENDERECO;ESTIMATIVAPUBLICO
 01/Jan/2026;Feira cultural;Avenida Afonso Pena, 1000, Centro, Belo Horizonte/MG;350
-02/Jan/2026;Show musical;Rua da Bahia, 1500, Lourdes, Belo Horizonte/MG;1200
+02/Jan/2026;Show musical;Rua da Bahia, 1500, Lourdes, Belo Horizonte/MG;120000
 03/Jan/2026;Evento gastronômico;Rua Espírito Santo, 900, Centro, Belo Horizonte/MG;500
 04/Jan/2026;Exposição de arte;Avenida Álvares Cabral, 400, Centro, Belo Horizonte/MG;200
 05/Jan/2026;Festival de rua;Rua dos Timbiras, 1200, Funcionários, Belo Horizonte/MG;800
 06/Jan/2026;Apresentação teatral;Rua Rio de Janeiro, 600, Centro, Belo Horizonte/MG;300
-07/Jan/2026;Feira de livros;Avenida Brasil, 1300, Funcionários, Belo Horizonte/MG;450
+07/Jan/2026;Feira de livros;Avenida Brasil, 1300, Funcionários, Belo Horizonte/MG;45000
 08/Jan/2026;Evento esportivo;Avenida Antônio Carlos, 3000, Pampulha, Belo Horizonte/MG;2000
 09/Jan/2026;Festival gastronômico;Rua Sapucaí, 500, Floresta, Belo Horizonte/MG;600
 10/Jan/2026;Show ao vivo;Rua Pium-í, 800, Sion, Belo Horizonte/MG;700
@@ -48,5 +48,5 @@ DATA;DESCRICAO;ENDERECO;ESTIMATIVAPUBLICO
 16/Fev/2026;Feira de livros;Rua Desembargador Barcelos, 600, Nova Suíça, Belo Horizonte/MG;400
 17/Fev/2026;Evento esportivo;Avenida Dom Pedro I, 5000, Itapoã, Belo Horizonte/MG;1800
 18/Fev/2026;Festival gastronômico;Rua Pitangui, 200, Concórdia, Belo Horizonte/MG;550
-19/Fev/2026;Show ao vivo;Rua Jacuí, 150, Floresta, Belo Horizonte/MG;700
-20/Fev/2026;Feira artesanal;Avenida Fleming, 1800, Ouro Preto, Belo Horizonte/MG;350
+19/Fev/2026;Show ao vivo;Rua Jacuí, 150, Floresta, Belo Horizonte/MG;70000
+20/Fev/2026;Feira artesanal;Avenida Fleming, 1800, Ouro Preto, Belo Horizonte/MG;35000

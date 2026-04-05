@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import math
 import statistics
 import sys
 import time
@@ -115,6 +116,15 @@ def extrair_publico(publico: str) -> int | None:
     return None
   return int(numeros)
 
+
+def calcular_raio_marcador(publico_valor: int | None) -> float:
+  if publico_valor is None:
+    return 8
+
+  # Escala progressiva: aumenta com o publico, com limites para manter legibilidade.
+  raio = 6 + (2 * math.log10(publico_valor + 1))
+  return round(min(20, max(8, raio)), 1)
+
 def classificar_publico(publico: str) -> dict[str, object]:
   valor = extrair_publico(publico)
   if valor is None:
@@ -122,7 +132,7 @@ def classificar_publico(publico: str) -> dict[str, object]:
       "publico_valor": None,
       "faixa_publico": "Nao informado",
       "cor_marcador": "#64748b",
-      "raio_marcador": 8,
+      "raio_marcador": calcular_raio_marcador(valor),
     }
 
   if valor <= 1000:
@@ -130,7 +140,7 @@ def classificar_publico(publico: str) -> dict[str, object]:
       "publico_valor": valor,
       "faixa_publico": "Pequeno porte",
       "cor_marcador": "#2f855a",
-      "raio_marcador": 8,
+      "raio_marcador": calcular_raio_marcador(valor),
     }
 
   if valor <= 5000:
@@ -138,14 +148,14 @@ def classificar_publico(publico: str) -> dict[str, object]:
       "publico_valor": valor,
       "faixa_publico": "Medio porte",
       "cor_marcador": "#d97706",
-      "raio_marcador": 11,
+      "raio_marcador": calcular_raio_marcador(valor),
     }
 
   return {
     "publico_valor": valor,
     "faixa_publico": "Grande porte",
     "cor_marcador": "#c53030",
-    "raio_marcador": 14,
+    "raio_marcador": calcular_raio_marcador(valor),
   }
 
 
