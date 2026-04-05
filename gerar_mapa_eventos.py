@@ -377,16 +377,20 @@ def montar_html(registros: list[dict[str, object]]) -> str:
   <meta charset=\"utf-8\">
   <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
   <title>Mapa de Eventos</title>
+    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">
+    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>
+    <link href=\"https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap\" rel=\"stylesheet\">
   <link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@1.9.4/dist/leaflet.css\" integrity=\"sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=\" crossorigin=\"\">
   <style>
     :root {{
-      --bg: #f4efe8;
-      --panel: rgba(255, 252, 247, 0.92);
-      --ink: #1f2933;
-      --muted: #52606d;
-      --accent: #c2410c;
-      --accent-soft: #fed7aa;
-      --line: rgba(31, 41, 51, 0.12);
+      --bg: #f6f8fa;
+      --panel: rgba(255, 255, 255, 0.96);
+      --ink: #32373c;
+      --muted: #5f6b76;
+      --accent: #f08a24;
+      --accent-soft: #ffe0c2;
+      --brand: #007f8b;
+      --line: rgba(50, 55, 60, 0.14);
     }}
     * {{ box-sizing: border-box; }}
     html, body {{
@@ -395,11 +399,12 @@ def montar_html(registros: list[dict[str, object]]) -> str:
     }}
     body {{
       margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
+      font-family: "Montserrat", "Helvetica Neue", Helvetica, Arial, sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(circle at top left, rgba(194, 65, 12, 0.12), transparent 28%),
-        linear-gradient(180deg, #f8f4ee 0%, var(--bg) 100%);
+        radial-gradient(circle at 5% 0%, rgba(0, 127, 139, 0.1), transparent 35%),
+        radial-gradient(circle at 95% 15%, rgba(240, 138, 36, 0.1), transparent 30%),
+        linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
     }}
     .layout {{
       display: grid;
@@ -411,27 +416,32 @@ def montar_html(registros: list[dict[str, object]]) -> str:
       height: 100vh;
       padding: 28px 22px;
       background: var(--panel);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(6px);
       border-right: 1px solid var(--line);
       overflow-y: auto;
+      box-shadow: 6px 0 24px rgba(0, 0, 0, 0.04);
     }}
     .eyebrow {{
       margin: 0 0 8px;
       font-size: 12px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--brand);
+      font-weight: 700;
     }}
     h1 {{
       margin: 0;
       font-size: 34px;
       line-height: 1.05;
+      color: #1f2933;
     }}
     .summary {{
       margin: 18px 0 24px;
       padding: 14px 16px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.7);
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
     }}
     .legend {{
       display: grid;
@@ -451,16 +461,17 @@ def montar_html(registros: list[dict[str, object]]) -> str:
     }}
     .filters label {{
       font-size: 13px;
-      color: var(--muted);
+      color: var(--brand);
       text-transform: uppercase;
       letter-spacing: 0.08em;
+      font-weight: 700;
     }}
     .filters select {{
       width: 100%;
       padding: 12px 14px;
       border-radius: 12px;
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.92);
+      background: #ffffff;
       color: var(--ink);
       font: inherit;
     }}
@@ -490,20 +501,20 @@ def montar_html(registros: list[dict[str, object]]) -> str:
     }}
     .card {{
       padding: 14px 16px;
-      background: rgba(255, 255, 255, 0.78);
+      background: #ffffff;
       border: 1px solid var(--line);
       border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(31, 41, 51, 0.06);
+      box-shadow: 0 8px 22px rgba(50, 55, 60, 0.07);
       cursor: pointer;
       transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
     }}
     .card:hover {{
       transform: translateY(-2px);
-      box-shadow: 0 14px 34px rgba(31, 41, 51, 0.1);
+      box-shadow: 0 14px 30px rgba(50, 55, 60, 0.12);
     }}
     .card.is-active {{
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.14), 0 14px 34px rgba(31, 41, 51, 0.1);
+      box-shadow: 0 0 0 3px rgba(240, 138, 36, 0.18), 0 14px 30px rgba(50, 55, 60, 0.12);
     }}
     .card-header {{
       display: flex;
@@ -556,6 +567,7 @@ def montar_html(registros: list[dict[str, object]]) -> str:
       font-size: 12px;
       background: var(--accent-soft);
       color: var(--accent);
+      font-weight: 700;
     }}
     #map {{
       width: 100%;
@@ -581,7 +593,7 @@ def montar_html(registros: list[dict[str, object]]) -> str:
 <body>
   <div class=\"layout\">
     <aside class=\"sidebar\">
-      <p class=\"eyebrow\">Mapa de Calor dos Eventos em Belo Horizonte</p>
+      <p class=\"eyebrow\"> </p>
       <h1>Mapa de Calor dos Eventos em Belo Horizonte</h1>
       <div class=\"summary\">
         <div>Total de registros: <span id=\"summary-total\">{len(registros)}</span></div>
