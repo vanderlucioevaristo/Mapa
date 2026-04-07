@@ -108,8 +108,12 @@ def normalizar_nome_coluna(nome: str) -> str:
 def padronizar_registros(registros: Iterable[dict[str, str]]) -> list[dict[str, str]]:
     colunas_canonicas = {
         "DATA": "DATA",
+        "DATAFINAL": "DATAFINAL",
+        "DATAFIM": "DATAFINAL",
         "DESCRICAO": "DESCRICAO",
         "ENDERECO": "ENDERECO",
+        "NOMLOCAL": "NOMLOCAL",
+        "NOMELOCAL": "NOMLOCAL",
         "ESTIMATIVAPUBLICO": "ESTIMATIVA PUBLICO",
     }
 
@@ -117,8 +121,10 @@ def padronizar_registros(registros: Iterable[dict[str, str]]) -> list[dict[str, 
     for registro in registros:
         padrao = {
             "DATA": "",
+            "DATAFINAL": "",
             "DESCRICAO": "",
             "ENDERECO": "",
+            "NOMLOCAL": "",
             "ESTIMATIVA PUBLICO": "",
         }
         for chave, valor in registro.items():
@@ -138,8 +144,10 @@ def imprimir_registros(registros: Iterable[dict[str, str]]) -> None:
 
     colunas_alvo = [
         "DATA",
+        "DATAFINAL",
         "DESCRICAO",
         "ENDERECO",
+        "NOMLOCAL",
         "ESTIMATIVA PUBLICO",
     ]
 

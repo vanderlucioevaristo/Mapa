@@ -110,6 +110,56 @@ def extrair_data_info(data: str) -> dict[str, object]:
   }
 
 
+def iterar_meses_periodo(data_inicio: dt.datetime, data_final: dt.datetime) -> list[str]:
+  ano = data_inicio.year
+  mes = data_inicio.month
+  fim_ano = data_final.year
+  fim_mes = data_final.month
+  chaves: list[str] = []
+
+  while (ano, mes) <= (fim_ano, fim_mes):
+    chaves.append(f"{ano:04d}-{mes:02d}")
+    if mes == 12:
+      ano += 1
+      mes = 1
+    else:
+      mes += 1
+
+  return chaves
+
+
+def extrair_periodo_info(data_inicio: str, data_final: str) -> dict[str, object]:
+  inicio_evento = parse_data_evento((data_inicio or "").strip())
+  final_evento = parse_data_evento((data_final or "").strip())
+
+  if inicio_evento is None and final_evento is None:
+    return {
+      "mes_numero": None,
+      "mes_nome": "Data invalida",
+      "ano_numero": None,
+      "data_ordem": None,
+      "data_final_ordem": None,
+      "meses_ano_chaves": [],
+    }
+
+  if inicio_evento is None:
+    inicio_evento = final_evento
+  if final_evento is None or (inicio_evento is not None and final_evento < inicio_evento):
+    final_evento = inicio_evento
+
+  assert inicio_evento is not None
+  assert final_evento is not None
+
+  return {
+    "mes_numero": inicio_evento.month,
+    "mes_nome": MESES_PT_BR[inicio_evento.month],
+    "ano_numero": inicio_evento.year,
+    "data_ordem": inicio_evento.strftime("%Y-%m-%d"),
+    "data_final_ordem": final_evento.strftime("%Y-%m-%d"),
+    "meses_ano_chaves": iterar_meses_periodo(inicio_evento, final_evento),
+  }
+
+
 def extrair_publico(publico: str) -> int | None:
   numeros = "".join(ch for ch in publico if ch.isdigit())
   if not numeros:
@@ -165,11 +215,17 @@ def remover_acentos(texto: str) -> str:
   )
 
 
-def gerar_consultas_endereco(endereco: str) -> list[str]:
+def gerar_consultas_endereco(endereco: str, nomlocal: str = "") -> list[str]:
   base = " ".join(endereco.strip().split())
+  local_base = " ".join(nomlocal.strip().split())
   sem_acentos = remover_acentos(base)
+  local_sem_acentos = remover_acentos(local_base)
 
   variacoes = [
+    f"{local_base}, {base}" if local_base else "",
+    f"{local_sem_acentos}, {sem_acentos}" if local_sem_acentos else "",
+    f"{base}, {local_base}" if local_base else "",
+    f"{sem_acentos}, {local_sem_acentos}" if local_sem_acentos else "",
     base,
     sem_acentos,
     base.replace("/", ", "),
@@ -186,6 +242,12 @@ def gerar_consultas_endereco(endereco: str) -> list[str]:
     if item_limpo and item_limpo not in consultas:
       consultas.append(item_limpo)
   return consultas
+
+
+def montar_chave_cache(endereco: str, nomlocal: str = "") -> str:
+    endereco_limpo = " ".join((endereco or "").strip().upper().split())
+    local_limpo = " ".join((nomlocal or "").strip().upper().split())
+    return f"{local_limpo}||{endereco_limpo}"
 
 
 def consultar_nominatim(consulta: str, contexto_ssl) -> list[dict[str, object]]:
@@ -232,15 +294,21 @@ def carregar_cache_geocodificacao(caminho_json: str) -> dict[str, dict[str, obje
             continue
 
         endereco = str(item.get("ENDERECO", "")).strip()
+        nomlocal = str(item.get("NOMLOCAL", "")).strip()
         if not endereco:
             continue
 
-        cache[endereco] = {
+        geodados = {
             "latitude": item.get("latitude"),
             "longitude": item.get("longitude"),
             "endereco_encontrado": item.get("endereco_encontrado", ""),
             "geocodificado": bool(item.get("geocodificado")),
         }
+        cache[montar_chave_cache(endereco, nomlocal)] = geodados
+
+        chave_legada = montar_chave_cache(endereco, "")
+        if chave_legada not in cache:
+            cache[chave_legada] = geodados
 
     return cache
 
@@ -264,35 +332,48 @@ def carregar_registros_existentes(caminho_json: str) -> list[dict[str, object]]:
     return saida
 
 
-def buscar_coordenadas(endereco: str, contexto_ssl, cache: dict[str, dict[str, object]]) -> dict[str, object]:
-    if endereco in cache:
-        return cache[endereco]
+def buscar_coordenadas(
+  endereco: str,
+  nomlocal: str,
+  contexto_ssl,
+  cache: dict[str, dict[str, object]],
+) -> dict[str, object]:
+  chave = montar_chave_cache(endereco, nomlocal)
+  if chave in cache:
+    return cache[chave]
 
-    payload: list[dict[str, object]] = []
-    for consulta in gerar_consultas_endereco(endereco):
-        payload = consultar_nominatim(consulta, contexto_ssl)
-        time.sleep(1)
-        if payload:
-            break
+  chave_legada = montar_chave_cache(endereco, "")
+  if chave_legada in cache and bool(cache[chave_legada].get("geocodificado")):
+    cache[chave] = cache[chave_legada]
+    return cache[chave]
 
-    if not payload:
-        resultado = {
-            "latitude": None,
-            "longitude": None,
-            "endereco_encontrado": "",
-            "geocodificado": False,
-        }
-    else:
-        primeiro = payload[0]
-        resultado = {
-            "latitude": float(primeiro["lat"]),
-            "longitude": float(primeiro["lon"]),
-            "endereco_encontrado": primeiro.get("display_name", ""),
-            "geocodificado": True,
-        }
+  payload: list[dict[str, object]] = []
+  for consulta in gerar_consultas_endereco(endereco, nomlocal):
+    payload = consultar_nominatim(consulta, contexto_ssl)
+    time.sleep(1)
+    if payload:
+      break
 
-    cache[endereco] = resultado
-    return resultado
+  if not payload:
+    resultado = {
+      "latitude": None,
+      "longitude": None,
+      "endereco_encontrado": "",
+      "geocodificado": False,
+    }
+  else:
+    primeiro = payload[0]
+    resultado = {
+      "latitude": float(primeiro["lat"]),
+      "longitude": float(primeiro["lon"]),
+      "endereco_encontrado": primeiro.get("display_name", ""),
+      "geocodificado": True,
+    }
+
+  cache[chave] = resultado
+  if chave_legada not in cache:
+    cache[chave_legada] = resultado
+  return resultado
 
 
 def enriquecer_registros(
@@ -306,6 +387,9 @@ def enriquecer_registros(
 
     for registro in registros:
         endereco = registro.get("ENDERECO", "").strip()
+        nomlocal = registro.get("NOMLOCAL", "").strip()
+        chave_cache = montar_chave_cache(endereco, nomlocal)
+        chave_legada = montar_chave_cache(endereco, "")
         geodados = {
             "latitude": None,
             "longitude": None,
@@ -313,22 +397,28 @@ def enriquecer_registros(
             "geocodificado": False,
         }
         dados_publico = classificar_publico(registro.get("ESTIMATIVA PUBLICO", ""))
-        dados_data = extrair_data_info(registro.get("DATA", ""))
+        dados_data = extrair_periodo_info(
+          registro.get("DATA", ""),
+          registro.get("DATAFINAL", ""),
+        )
         if endereco:
-            if endereco in cache:
-                geodados = cache[endereco]
+            if chave_cache in cache:
+                geodados = cache[chave_cache]
+            elif chave_legada in cache and bool(cache[chave_legada].get("geocodificado")):
+                geodados = cache[chave_legada]
+                cache[chave_cache] = geodados
             elif not limite_atingido:
                 try:
-                    geodados = buscar_coordenadas(endereco, contexto_ssl, cache)
+                    geodados = buscar_coordenadas(endereco, nomlocal, contexto_ssl, cache)
                 except GeocodingRateLimitError:
                     limite_atingido = True
-                    cache[endereco] = geodados
+                    cache[chave_cache] = geodados
                     print(
                         "Aviso: limite de geocodificacao atingido; usando cache existente e seguindo sem novas consultas.",
                         file=sys.stderr,
                     )
             else:
-                cache[endereco] = geodados
+                cache[chave_cache] = geodados
 
         item: dict[str, object] = dict(registro)
         item.update(geodados)
@@ -353,17 +443,29 @@ def montar_html(registros: list[dict[str, object]]) -> str:
     centro_lat, centro_lon = calcular_centro(registros)
     registros_json = json.dumps(registros, ensure_ascii=False)
     total_geocodificados = sum(1 for item in registros if item.get("geocodificado"))
+    meses_encontrados: set[int] = set()
+    anos_encontrados: set[int] = set()
+    for item in registros:
+        chaves = item.get("meses_ano_chaves")
+        if isinstance(chaves, list) and chaves:
+            for chave in chaves:
+                if not isinstance(chave, str) or len(chave) != 7 or "-" not in chave:
+                    continue
+                ano_txt, mes_txt = chave.split("-", 1)
+                if ano_txt.isdigit() and mes_txt.isdigit():
+                    anos_encontrados.add(int(ano_txt))
+                    meses_encontrados.add(int(mes_txt))
+        else:
+            if item.get("mes_numero") is not None:
+                meses_encontrados.add(int(item["mes_numero"]))
+            if item.get("ano_numero") is not None:
+                anos_encontrados.add(int(item["ano_numero"]))
+
     meses_disponiveis = sorted(
-        {
-            (int(item["mes_numero"]), str(item["mes_nome"]))
-            for item in registros
-            if item.get("mes_numero") is not None
-        },
+        {(mes, MESES_PT_BR.get(mes, f"Mes {mes}")) for mes in meses_encontrados},
         key=lambda item: item[0],
     )
-    anos_disponiveis = sorted(
-        {int(item["ano_numero"]) for item in registros if item.get("ano_numero") is not None}
-    )
+    anos_disponiveis = sorted(anos_encontrados)
     opcoes_mes = "\n".join(
         f'<option value="{numero}">{escape(nome)}</option>' for numero, nome in meses_disponiveis
     )
@@ -656,6 +758,31 @@ def montar_html(registros: list[dict[str, object]]) -> str:
       return Array.from(monthFilter.selectedOptions).map((option) => option.value).filter(Boolean);
     }}
 
+    function itemNoPeriodoSelecionado(item, anoSelecionado, meses) {{
+      const chaves = Array.isArray(item.meses_ano_chaves)
+        ? item.meses_ano_chaves
+            .map((valor) => String(valor || ''))
+            .filter((valor) => /^\\d{{4}}-\\d{{2}}$/.test(valor))
+        : [];
+
+      if (chaves.length === 0) {{
+        const anoValidoSimples = !anoSelecionado || String(item.ano_numero || '') === anoSelecionado;
+        const mesValidoSimples = meses.length === 0 || meses.includes(String(item.mes_numero || ''));
+        return anoValidoSimples && mesValidoSimples;
+      }}
+
+      const anoValido = !anoSelecionado || chaves.some((chave) => chave.startsWith(`${{anoSelecionado}}-`));
+      const mesValido = meses.length === 0 || chaves.some((chave) => {{
+        const [anoChave, mesChave] = chave.split('-');
+        if (anoSelecionado && anoChave !== anoSelecionado) {{
+          return false;
+        }}
+        return meses.includes(String(Number(mesChave)));
+      }});
+
+      return anoValido && mesValido;
+    }}
+
     function ordenarCardsVisiveis() {{
       const cards = Array.from(document.querySelectorAll('[data-event-index]'));
       cards.sort((cardA, cardB) => {{
@@ -679,9 +806,7 @@ def montar_html(registros: list[dict[str, object]]) -> str:
         const index = Number(card.dataset.eventIndex);
         const item = registros[index];
         const marker = markers.get(index);
-        const anoValido = !anoSelecionado || String(item.ano_numero || '') === anoSelecionado;
-        const mesValido = meses.length === 0 || meses.includes(String(item.mes_numero || ''));
-        const visivel = anoValido && mesValido;
+        const visivel = itemNoPeriodoSelecionado(item, anoSelecionado, meses);
 
         card.style.display = visivel ? '' : 'none';
         if (!visivel) {{
@@ -721,7 +846,9 @@ def montar_html(registros: list[dict[str, object]]) -> str:
 
       const popup = `
         <strong>${{item.DESCRICAO || 'Evento'}}</strong><br>
-        Data: ${{item.DATA || '-'}}<br>
+        Data inicial: ${{item.DATA || '-'}}<br>
+        Data final: ${{item.DATAFINAL || item.DATA || '-'}}<br>
+        Local: ${{item.NOMLOCAL || '-'}}<br>
         Endereco: ${{item.ENDERECO || '-'}}<br>
         Publico estimado: ${{item['ESTIMATIVA PUBLICO'] || '-'}}<br>
         Faixa: ${{item.faixa_publico || '-'}}
@@ -794,6 +921,8 @@ def montar_cards_eventos(registros: list[dict[str, object]]) -> str:
     for index, item in enumerate(registros):
         descricao = escape(str(item.get("DESCRICAO") or "Evento sem descricao"))
         data = escape(str(item.get("DATA") or "-"))
+        data_final = escape(str(item.get("DATAFINAL") or item.get("DATA") or "-"))
+        nomlocal = escape(str(item.get("NOMLOCAL") or "-"))
         endereco = escape(str(item.get("ENDERECO") or "-"))
         publico = escape(str(item.get("ESTIMATIVA PUBLICO") or "-"))
         faixa = escape(str(item.get("faixa_publico") or "Nao informado"))
@@ -808,8 +937,11 @@ def montar_cards_eventos(registros: list[dict[str, object]]) -> str:
             f"<span class=\"card-chevron\">&#9660;</span>"  
             f"</div>"  
             f"<div class=\"card-details\">"  
+            f"<p class=\"meta\"><strong>Data inicial:</strong> {data}</p>"  
+            f"<p class=\"meta\"><strong>Data final:</strong> {data_final}</p>"  
             f"<p class=\"meta\"><strong>Mes:</strong> {mes}</p>"  
             f"<p class=\"meta\"><strong>Ano:</strong> {ano}</p>"  
+            f"<p class=\"meta\"><strong>Local:</strong> {nomlocal}</p>"  
             f"<p class=\"meta\"><strong>Endereco:</strong> {endereco}</p>"  
             f"<p class=\"meta\"><strong>Publico:</strong> {publico}</p>"  
             f"<p class=\"meta\"><strong>Faixa:</strong> {faixa}</p>"  
@@ -843,7 +975,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--html-output",
-        default="index.html",
+        default="mapa.html",
         help="Arquivo HTML de saida.",
     )
     parser.add_argument(
