@@ -47,7 +47,7 @@ jobs:
 
       - name: Validate FTP configuration
         env:
-          FTP_SERVER: tpupload.net
+          FTP_SERVER: ftpupload.net
           FTP_USERNAME: if0_41595226
           FTP_PASSWORD: Loi159357216132
           FTP_PORT: 21
@@ -67,7 +67,7 @@ jobs:
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
-          server: tpupload.net
+          server: ftpupload.net
           username: if0_41595226
           password: Loi159357216132
           port: 21
