@@ -50,6 +50,7 @@ jobs:
           FTP_SERVER: tpupload.net
           FTP_USERNAME: if0_41595226
           FTP_PASSWORD: Loi159357216132
+          FTP_PORT: 21
         run: |
           missing=0
           for key in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_PORT; do
@@ -69,5 +70,6 @@ jobs:
           server: tpupload.net
           username: if0_41595226
           password: Loi159357216132
+          port: 21
           local-dir: ./dist/
           server-dir: ./htdocs/
