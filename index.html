@@ -281,6 +281,9 @@
       <button class="nav-item" data-page="calendario" onclick="showPage('calendario')">
         <span class="nav-icon">📅</span><span class="nav-label">Calendário de Eventos</span>
       </button>
+        <button class="nav-item" data-page="calendario_v2" onclick="showPage('calendario_v2')">
+          <span class="nav-icon">🗓️</span><span class="nav-label">Calendário por Local</span>
+        </button>
     </nav>
     <div class="sidebar-footer">&copy; 2026 Vander &middot; Eventos BH</div>
   </aside>
@@ -307,10 +310,16 @@
             <div class="welcome-card-title">Calendário de Eventos</div>
             <div class="welcome-card-desc">Grade mensal com eventos por local e faixa de público estimado.</div>
           </div>
+            <div class="welcome-card" onclick="showPage('calendario_v2')">
+              <div class="welcome-card-icon">🗓️</div>
+              <div class="welcome-card-title">Calendário por Local</div>
+              <div class="welcome-card-desc">Grade mensal agrupada por local. Porte identificado pela cor dos eventos.</div>
+            </div>
         </div>
       </div>
       <iframe id="frame-mapa"       class="page-frame" src="" title="Mapa de Eventos"></iframe>
       <iframe id="frame-calendario" class="page-frame" src="" title="Calendário de Eventos"></iframe>
+        <iframe id="frame-calendario_v2" class="page-frame" src="" title="Calendário por Local"></iframe>
     </div>
   </div>
 
@@ -319,6 +328,7 @@
       welcome:    { label: 'Início',                  frame: null,               src: null },
       mapa:       { label: 'Mapa de Eventos',         frame: 'frame-mapa',       src: 'mapa.html' },
       calendario: { label: 'Calendário de Eventos',   frame: 'frame-calendario', src: 'calendario.html' },
+      calendario_v2: { label: 'Calendário por Local',  frame: 'frame-calendario_v2', src: 'calendario_v2.html' },
     };
     const loadedFrames = new Set();
 
