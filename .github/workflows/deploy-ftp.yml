@@ -47,10 +47,10 @@ jobs:
 
       - name: Validate FTP configuration
         env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER || vars.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME || vars.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PORT: ${{ secrets.FTP_PORT || vars.FTP_PORT || '21' }}
+          FTP_SERVER: tpupload.net
+          FTP_USERNAME: if0_41595226
+          FTP_PASSWORD: Loi159357216132
+          FTP_PORT: 21
         run: |
           missing=0
           for key in FTP_SERVER FTP_USERNAME FTP_PASSWORD FTP_PORT; do
