@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Gera um calendario HTML de eventos por local e faixa de publico."""
 
+#python3 gerar_calendario_eventos.py --semestre 2026-1
+
 from __future__ import annotations
 
 import argparse
