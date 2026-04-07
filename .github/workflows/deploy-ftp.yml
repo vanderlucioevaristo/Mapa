@@ -1,0 +1,54 @@
+name: Deploy FTP
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ftp-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build mapa.html
+        run: python gerar_mapa_eventos.py
+
+      - name: Build calendario.html
+        run: python gerar_calendario_eventos.py
+
+      - name: Prepare deployment package
+        run: |
+          mkdir -p dist
+          cp index.html dist/
+          cp mapa.html dist/
+          cp calendario.html dist/
+
+      - name: Validate deployment files
+        run: |
+          test -s dist/index.html
+          test -s dist/mapa.html
+          test -s dist/calendario.html
+          ls -lh dist
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          local-dir: ./dist/
+          server-dir: ./htdocs/
