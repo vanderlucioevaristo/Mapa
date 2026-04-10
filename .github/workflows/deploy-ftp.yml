@@ -37,12 +37,14 @@ jobs:
           cp index.html dist/
           cp mapa.html dist/
           cp calendario.html dist/
+          cp cadastro_eventos.html dist/
 
       - name: Validate deployment files
         run: |
           test -s dist/index.html
           test -s dist/mapa.html
           test -s dist/calendario.html
+          test -s dist/cadastro_eventos.html
           ls -lh dist
 
       - name: Validate FTP configuration

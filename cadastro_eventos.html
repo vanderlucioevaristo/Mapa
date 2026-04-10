@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cadastro de Eventos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #000b33;
+      --navy-mid: #001a6e;
+      --gold: #fed141;
+      --bg: #f4f5f9;
+      --panel: #ffffff;
+      --line: rgba(0, 11, 51, 0.15);
+      --text: #1a1f36;
+      --ok: #0f766e;
+      --error: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: "Outfit", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 5% 0%, rgba(254, 209, 65, 0.15), transparent 30%),
+        radial-gradient(circle at 100% 100%, rgba(0, 26, 110, 0.09), transparent 28%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    .wrap { max-width: 980px; margin: 0 auto; }
+
+    .hero {
+      background: linear-gradient(140deg, var(--navy) 0%, var(--navy-mid) 100%);
+      border-radius: 16px;
+      color: #f8fafc;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 28px rgba(0, 11, 51, 0.22);
+      border: 1px solid rgba(254, 209, 65, 0.25);
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: "Montserrat", sans-serif;
+      margin-bottom: 10px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      font-family: "Montserrat", sans-serif;
+      color: var(--gold);
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: rgba(248, 250, 252, 0.88);
+      line-height: 1.5;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--navy);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 6px 24px rgba(0, 11, 51, 0.08);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #27325a;
+    }
+
+    .required::after {
+      content: " *";
+      color: #dc2626;
+      font-weight: 700;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid #c9d2e7;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #315ae6;
+      box-shadow: 0 0 0 3px rgba(49, 90, 230, 0.14);
+    }
+
+    .actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-family: "Montserrat", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+
+    .btn-primary {
+      background: var(--navy);
+      color: var(--gold);
+      box-shadow: 0 4px 16px rgba(0, 11, 51, 0.2);
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #334155;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 14px;
+      min-height: 22px;
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.error { color: var(--error); }
+
+    @media (max-width: 760px) {
+      body { padding: 14px; }
+      .hero h1 { font-size: 22px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <span class="hero-badge">Visite BH</span>
+      <h1>Cadastro de Eventos</h1>
+      <p>Ao confirmar, os dados serao gravados na planilha oficial de eventos.</p>
+    </section>
+
+    <section class="card">
+      <form id="form-evento" novalidate>
+        <div class="grid">
+          <div class="field full">
+            <label class="required" for="descricao">DESCRICAO</label>
+            <textarea id="descricao" name="descricao" required></textarea>
+          </div>
+
+          <div class="field">
+            <label class="required" for="local">LOCAL</label>
+            <input id="local" name="local" type="text" required>
+          </div>
+
+          <div class="field">
+            <label class="required" for="enderecoLocal">ENDERECOLOCAL</label>
+            <input id="enderecoLocal" name="enderecoLocal" type="text" required>
+          </div>
+
+          <div class="field">
+            <label class="required" for="dataInicio">DATAINICIO</label>
+            <input id="dataInicio" name="dataInicio" type="date" required>
+          </div>
+
+          <div class="field">
+            <label for="dataFim">DATAFIM</label>
+            <input id="dataFim" name="dataFim" type="date">
+          </div>
+
+          <div class="field">
+            <label for="entidade">ENTIDADE</label>
+            <input id="entidade" name="entidade" type="text">
+          </div>
+
+          <div class="field">
+            <label for="estimativaPublico">ESTIMATIVAPUBLICO</label>
+            <input id="estimativaPublico" name="estimativaPublico" type="text">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" id="btn-confirmar" class="btn btn-primary">Confirmar</button>
+          <button type="reset" class="btn btn-secondary">Limpar</button>
+        </div>
+
+        <div id="status" class="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById('form-evento');
+    const statusEl = document.getElementById('status');
+    const btnConfirmar = document.getElementById('btn-confirmar');
+
+    function setStatus(message, kind) {
+      statusEl.textContent = message || '';
+      statusEl.classList.remove('ok', 'error');
+      if (kind) statusEl.classList.add(kind);
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      setStatus('');
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      btnConfirmar.disabled = true;
+      btnConfirmar.style.opacity = '0.7';
+
+      const payload = {
+        descricao: document.getElementById('descricao').value.trim(),
+        local: document.getElementById('local').value.trim(),
+        enderecoLocal: document.getElementById('enderecoLocal').value.trim(),
+        dataInicio: document.getElementById('dataInicio').value,
+        dataFim: document.getElementById('dataFim').value,
+        entidade: document.getElementById('entidade').value.trim(),
+        estimativaPublico: document.getElementById('estimativaPublico').value.trim(),
+      };
+
+      try {
+        const response = await fetch('/api/eventos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const mensagemErro = [data.erro, data.detalhe]
+            .filter(Boolean)
+            .join(' | ');
+          throw new Error(mensagemErro || 'Falha ao salvar evento.');
+        }
+
+        setStatus(data.mensagem || 'Evento cadastrado com sucesso.', 'ok');
+        form.reset();
+      } catch (error) {
+        setStatus(error.message || 'Erro inesperado ao salvar evento.', 'error');
+      } finally {
+        btnConfirmar.disabled = false;
+        btnConfirmar.style.opacity = '1';
+      }
+    });
+  </script>
+</body>
+</html>
