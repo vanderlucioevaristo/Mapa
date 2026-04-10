@@ -236,9 +236,59 @@
   </div>
 
   <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5vHrcflW2HGVx0xb3Muabt0-dM0hdEHhWfivcwHeD74h3xdTkLOjrHJNkDawa05PgqQ/exec';
+
     const form = document.getElementById('form-evento');
     const statusEl = document.getElementById('status');
     const btnConfirmar = document.getElementById('btn-confirmar');
+
+    function mapearPayloadAppsScript(payload) {
+      return {
+        DESCRICAO: payload.descricao,
+        LOCAL: payload.local,
+        ENDERECOLOCAL: payload.enderecoLocal,
+        DATAINICIO: payload.dataInicio,
+        DATAFIM: payload.dataFim,
+        ENTIDADE: payload.entidade,
+        ESTIMATIVAPUBLICO: payload.estimativaPublico,
+      };
+    }
+
+    async function tentarSalvarNoBackend(payload) {
+      const response = await fetch('/api/eventos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const erro = [data.erro, data.detalhe].filter(Boolean).join(' | ');
+        throw new Error(erro || 'Falha ao salvar no backend.');
+      }
+
+      return data;
+    }
+
+    async function salvarDiretoNoAppsScript(payload) {
+      if (!APPS_SCRIPT_URL) {
+        throw new Error('APPS_SCRIPT_URL nao configurada para envio direto.');
+      }
+
+      const response = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mapearPayloadAppsScript(payload)),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok === false) {
+        const erro = [data.erro, data.detalhe].filter(Boolean).join(' | ');
+        throw new Error(erro || 'Falha ao salvar diretamente no Apps Script.');
+      }
+
+      return data;
+    }
 
     function setStatus(message, kind) {
       statusEl.textContent = message || '';
@@ -269,18 +319,12 @@
       };
 
       try {
-        const response = await fetch('/api/eventos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          const mensagemErro = [data.erro, data.detalhe]
-            .filter(Boolean)
-            .join(' | ');
-          throw new Error(mensagemErro || 'Falha ao salvar evento.');
+        let data;
+        try {
+          data = await tentarSalvarNoBackend(payload);
+        } catch (erroBackend) {
+          // Em deploy estatico nao existe /api/eventos. Faz fallback direto no Apps Script.
+          data = await salvarDiretoNoAppsScript(payload);
         }
 
         setStatus(data.mensagem || 'Evento cadastrado com sucesso.', 'ok');
