@@ -9,6 +9,7 @@ import datetime as dt
 import io
 import json
 import math
+import re
 import statistics
 import sys
 import time
@@ -310,13 +311,33 @@ def remover_acentos(texto: str) -> str:
   )
 
 
+_RE_ARTIGOS_PT = re.compile(
+  r"\b(no bairro|na rua|no |na |em |ao |de )\b",
+  re.IGNORECASE,
+)
+
+
+def _limpar_endereco(texto: str) -> str:
+  """Remove preposicoes e artigos em portugues que confundem o geocodificador."""
+  limpo = _RE_ARTIGOS_PT.sub(", ", texto)
+  limpo = re.sub(r",\s*,", ",", limpo)
+  limpo = limpo.strip(" ,.")
+  return " ".join(limpo.split())
+
+
 def gerar_consultas_endereco(endereco: str, nomlocal: str = "") -> list[str]:
   base = " ".join(endereco.strip().split())
   local_base = " ".join(nomlocal.strip().split())
   sem_acentos = remover_acentos(base)
   local_sem_acentos = remover_acentos(local_base)
+  base_limpo = _limpar_endereco(base)
+  base_limpo_sem_acentos = remover_acentos(base_limpo)
 
   variacoes = [
+    f"{local_base}, {base_limpo}" if local_base else "",
+    f"{local_sem_acentos}, {base_limpo_sem_acentos}" if local_sem_acentos else "",
+    base_limpo,
+    base_limpo_sem_acentos,
     f"{local_base}, {base}" if local_base else "",
     f"{local_sem_acentos}, {sem_acentos}" if local_sem_acentos else "",
     f"{base}, {local_base}" if local_base else "",
@@ -325,10 +346,8 @@ def gerar_consultas_endereco(endereco: str, nomlocal: str = "") -> list[str]:
     sem_acentos,
     base.replace("/", ", "),
     sem_acentos.replace("/", ", "),
-    base.replace(" BAIRRO ", ", "),
-    sem_acentos.replace(" BAIRRO ", ", "),
-    base.replace(" BAIRRO ", ", ").replace("/", ", ") + ", Brasil",
-    sem_acentos.replace(" BAIRRO ", ", ").replace("/", ", ") + ", Brasil",
+    base_limpo.replace("/", ", ") + ", Brasil",
+    base_limpo_sem_acentos.replace("/", ", ") + ", Brasil",
   ]
 
   consultas: list[str] = []
@@ -434,7 +453,7 @@ def buscar_coordenadas(
   cache: dict[str, dict[str, object]],
 ) -> dict[str, object]:
   chave = montar_chave_cache(endereco, nomlocal)
-  if chave in cache:
+  if chave in cache and bool(cache[chave].get("geocodificado")):
     return cache[chave]
 
   chave_legada = montar_chave_cache(endereco, "")
@@ -497,7 +516,7 @@ def enriquecer_registros(
           registro.get("DATAFINAL", ""),
         )
         if endereco:
-            if chave_cache in cache:
+            if chave_cache in cache and bool(cache[chave_cache].get("geocodificado")):
                 geodados = cache[chave_cache]
             elif chave_legada in cache and bool(cache[chave_legada].get("geocodificado")):
                 geodados = cache[chave_legada]
