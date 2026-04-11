@@ -194,13 +194,14 @@
     #welcome {
       position: absolute; inset: 0;
       display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+      align-items: center; justify-content: flex-start;
       gap: 20px; padding: 40px; text-align: center;
       background:
         radial-gradient(circle at 85% 10%, rgba(0,11,51,.07), transparent 40%),
         radial-gradient(circle at 10% 90%, rgba(254,209,65,.07), transparent 35%),
         var(--bg);
       transition: opacity .3s ease;
+      overflow-y: auto;
     }
     #welcome.hidden { opacity: 0; pointer-events: none; }
     .welcome-logo {
@@ -227,6 +228,110 @@
     .welcome-card-icon { font-size: 32px; margin-bottom: 8px; }
     .welcome-card-title { font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 14px; color: var(--navy); }
     .welcome-card-desc { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+    .upcoming-section {
+      width: min(980px, 100%);
+      margin-top: 2px;
+      background: var(--panel);
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 3px 12px rgba(0,11,51,.07);
+    }
+    .upcoming-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+    .upcoming-title {
+      font-family: "Montserrat", sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: .03em;
+      color: var(--navy);
+      text-transform: uppercase;
+    }
+    .upcoming-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .carousel-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--navy);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+    .carousel-btn:hover { background: #f8fafc; }
+    .upcoming-indicator {
+      min-width: 56px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 600;
+    }
+    .events-stage {
+      min-height: 176px;
+      border-radius: 12px;
+      border: 1px dashed rgba(0, 11, 51, .18);
+      background: linear-gradient(145deg, #ffffff 0%, #f9fafc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      text-align: left;
+    }
+    .event-card {
+      width: 100%;
+      max-width: 860px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--navy);
+      background: #fff;
+      box-shadow: 0 4px 18px rgba(0,11,51,.08);
+      padding: 16px;
+      animation: fadein .35s ease;
+    }
+    .event-date {
+      display: inline-block;
+      background: rgba(254,209,65,.25);
+      color: #5b4500;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 8px;
+    }
+    .event-title {
+      font-family: "Montserrat", sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 7px;
+      line-height: 1.3;
+    }
+    .event-meta {
+      font-size: 13px;
+      line-height: 1.55;
+      color: #334155;
+    }
+    .events-empty {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     /* collapsed */
     body.sidebar-collapsed #sidebar { width: 60px; }
@@ -255,6 +360,9 @@
       body.sidebar-collapsed .nav-label,
       body.sidebar-collapsed .sidebar-footer { display: revert; }
       body.sidebar-collapsed .nav-item { justify-content: flex-start; padding: 11px 18px; margin: 1px 8px; width: calc(100% - 16px); }
+      .upcoming-header { flex-wrap: wrap; }
+      .events-stage { min-height: 210px; }
+      .event-title { font-size: 16px; }
     }
   </style>
 </head>
@@ -302,28 +410,19 @@
         <div class="welcome-logo">V</div>
         <div class="welcome-title">Bem-vindo, Vander!</div>
         <div class="welcome-subtitle">Selecione uma ferramenta no menu lateral ou clique em um dos acessos rápidos abaixo.</div>
-        <div class="welcome-cards">
-          <div class="welcome-card" onclick="showPage('mapa')">
-            <div class="welcome-card-icon">🗺️</div>
-            <div class="welcome-card-title">Mapa de Eventos</div>
-            <div class="welcome-card-desc">Visualize eventos em mapa interativo com filtros por mês e público.</div>
-          </div>
-          <div class="welcome-card" onclick="showPage('calendario')">
-            <div class="welcome-card-icon">📅</div>
-            <div class="welcome-card-title">Calendário de Eventos</div>
-            <div class="welcome-card-desc">Grade mensal com eventos por local e faixa de público estimado.</div>
-          </div>
-            <div class="welcome-card" onclick="showPage('calendario_v2')">
-              <div class="welcome-card-icon">🗓️</div>
-              <div class="welcome-card-title">Calendário por Local</div>
-              <div class="welcome-card-desc">Grade mensal agrupada por local. Porte identificado pela cor dos eventos.</div>
+        <section class="upcoming-section" aria-label="Próximos eventos">
+          <div class="upcoming-header">
+            <div class="upcoming-title">Próximos Eventos</div>
+            <div class="upcoming-controls">
+              <button id="carousel-prev" class="carousel-btn" type="button" aria-label="Evento anterior">&#8249;</button>
+              <div id="carousel-indicator" class="upcoming-indicator">0 / 0</div>
+              <button id="carousel-next" class="carousel-btn" type="button" aria-label="Próximo evento">&#8250;</button>
             </div>
-          <div class="welcome-card" onclick="showPage('cadastro')">
-            <div class="welcome-card-icon">📝</div>
-            <div class="welcome-card-title">Cadastro de Eventos</div>
-            <div class="welcome-card-desc">Cadastre novos eventos e grave os dados diretamente na planilha.</div>
           </div>
-        </div>
+          <div id="events-stage" class="events-stage">
+            <div id="events-empty" class="events-empty">Carregando eventos...</div>
+          </div>
+        </section>
       </div>
       <iframe id="frame-mapa"       class="page-frame" src="" title="Mapa de Eventos"></iframe>
       <iframe id="frame-calendario" class="page-frame" src="" title="Calendário de Eventos"></iframe>
@@ -333,6 +432,12 @@
   </div>
 
   <script>
+    const carouselState = {
+      eventos: [],
+      atual: 0,
+      timer: null,
+    };
+
     const pages = {
       welcome:    { label: 'Início',                  frame: null,               src: null },
       mapa:       { label: 'Mapa de Eventos',         frame: 'frame-mapa',       src: 'mapa.html' },
@@ -341,6 +446,150 @@
       cadastro: { label: 'Cadastro de Eventos', frame: 'frame-cadastro', src: 'cadastro_eventos.html' },
     };
     const loadedFrames = new Set();
+
+    function parseDataCsv(texto) {
+      const valor = (texto || '').trim();
+      if (!valor) return null;
+      const partes = valor.split('/');
+      if (partes.length !== 3) return null;
+
+      const dia = parseInt(partes[0], 10);
+      const mesTxt = partes[1].slice(0, 3).toUpperCase();
+      const ano = parseInt(partes[2], 10);
+
+      const meses = {
+        JAN: 0, FEV: 1, MAR: 2, ABR: 3, MAI: 4, JUN: 5,
+        JUL: 6, AGO: 7, SET: 8, OUT: 9, NOV: 10, DEZ: 11,
+      };
+
+      const mes = meses[mesTxt];
+      if (!Number.isInteger(dia) || !Number.isInteger(ano) || mes === undefined) return null;
+      return new Date(ano, mes, dia);
+    }
+
+    function formatarIntervalo(dataInicio, dataFim) {
+      const ini = (dataInicio || '').trim();
+      const fim = (dataFim || '').trim();
+      if (fim && fim !== ini) return `${ini} até ${fim}`;
+      return ini;
+    }
+
+    function parseCsvEventos(csvText) {
+      const linhas = csvText.split(/\r?\n/).filter(l => l.trim());
+      if (linhas.length < 2) return [];
+
+      const cabecalho = linhas[0].split(';').map(c => c.trim());
+      const eventos = [];
+
+      for (let i = 1; i < linhas.length; i += 1) {
+        const colunas = linhas[i].split(';');
+        if (colunas.length < cabecalho.length) continue;
+        const item = {};
+        for (let j = 0; j < cabecalho.length; j += 1) {
+          item[cabecalho[j]] = (colunas[j] || '').trim();
+        }
+        eventos.push(item);
+      }
+
+      return eventos;
+    }
+
+    function normalizarFuturo(eventos) {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      return eventos
+        .map((ev) => {
+          const inicio = parseDataCsv(ev.DATA);
+          const fim = parseDataCsv(ev.DATAFINAL) || inicio;
+          return {
+            descricao: ev.DESCRICAO || 'Evento sem descrição',
+            local: ev.NOMELOCAL || ev.LOCAL || 'Local não informado',
+            endereco: ev.ENDERECO || ev.ENDERECOLOCAL || 'Endereço não informado',
+            publico: ev.ESTIMATIVAPUBLICO || 'Não informado',
+            dataInicioTxt: ev.DATA || '',
+            dataFimTxt: ev.DATAFINAL || ev.DATA || '',
+            inicio,
+            fim,
+          };
+        })
+        .filter(ev => ev.inicio && ev.fim && ev.fim >= hoje)
+        .sort((a, b) => a.inicio - b.inicio)
+        .slice(0, 12);
+    }
+
+    function atualizarIndicador() {
+      const indicador = document.getElementById('carousel-indicator');
+      if (!indicador) return;
+      const total = carouselState.eventos.length;
+      const atual = total ? (carouselState.atual + 1) : 0;
+      indicador.textContent = `${atual} / ${total}`;
+    }
+
+    function renderEventoAtual() {
+      const stage = document.getElementById('events-stage');
+      if (!stage) return;
+
+      if (!carouselState.eventos.length) {
+        stage.innerHTML = '<div class="events-empty">Nenhum próximo evento encontrado no momento.</div>';
+        atualizarIndicador();
+        return;
+      }
+
+      const ev = carouselState.eventos[carouselState.atual];
+      const periodo = formatarIntervalo(ev.dataInicioTxt, ev.dataFimTxt);
+
+      stage.innerHTML = `
+        <article class="event-card">
+          <div class="event-date">${periodo}</div>
+          <div class="event-title">${ev.descricao}</div>
+          <div class="event-meta"><strong>Local:</strong> ${ev.local}</div>
+          <div class="event-meta"><strong>Endereço:</strong> ${ev.endereco}</div>
+          <div class="event-meta"><strong>Público estimado:</strong> ${ev.publico}</div>
+        </article>
+      `;
+
+      atualizarIndicador();
+    }
+
+    function avancarEvento() {
+      const total = carouselState.eventos.length;
+      if (!total) return;
+      carouselState.atual = (carouselState.atual + 1) % total;
+      renderEventoAtual();
+    }
+
+    function voltarEvento() {
+      const total = carouselState.eventos.length;
+      if (!total) return;
+      carouselState.atual = (carouselState.atual - 1 + total) % total;
+      renderEventoAtual();
+    }
+
+    function iniciarAutoRotacao() {
+      if (carouselState.timer) clearInterval(carouselState.timer);
+      carouselState.timer = setInterval(avancarEvento, 2000);
+    }
+
+    async function carregarCarrosselEventos() {
+      const stage = document.getElementById('events-stage');
+      if (!stage) return;
+
+      try {
+        const resposta = await fetch('eventos_bh.csv', { cache: 'no-store' });
+        if (!resposta.ok) throw new Error('Falha ao carregar CSV de eventos.');
+        const csvText = await resposta.text();
+
+        const eventos = parseCsvEventos(csvText);
+        carouselState.eventos = normalizarFuturo(eventos);
+        carouselState.atual = 0;
+        renderEventoAtual();
+        iniciarAutoRotacao();
+      } catch (erro) {
+        stage.innerHTML = '<div class="events-empty">Não foi possível carregar os próximos eventos.</div>';
+        atualizarIndicador();
+      }
+    }
 
     function showPage(id) {
       const def = pages[id];
@@ -377,7 +626,10 @@
       document.getElementById('overlay').classList.remove('active');
     }
     document.getElementById('overlay').addEventListener('click', closeMobileSidebar);
+    document.getElementById('carousel-prev').addEventListener('click', voltarEvento);
+    document.getElementById('carousel-next').addEventListener('click', avancarEvento);
 
+    carregarCarrosselEventos();
     showPage('welcome');
   </script>
 </body>

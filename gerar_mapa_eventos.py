@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import datetime as dt
+import io
 import json
 import math
 import statistics
@@ -27,10 +29,103 @@ from listar_eventos_planilha import (
 DEFAULT_CSV_PATH = "eventos_bh.csv"
 DEFAULT_LAT = -19.9167
 DEFAULT_LON = -43.9345
+SPREADSHEET_ID = "1BuXBFWZ396pSujh5ERjpDpAr850lGfZwqwzXquIPzgU"
+CSV_FIELDS = [
+  "DATA",
+  "DATAFINAL",
+  "DESCRICAO",
+  "ENDERECO",
+  "ESTIMATIVAPUBLICO",
+  "NOMELOCAL",
+  "RESPONSAVEL",
+]
 
 
 class GeocodingRateLimitError(RuntimeError):
     """Sinaliza que o servico de geocodificacao recusou a consulta por limite de taxa."""
+
+
+def normalizar_nome_coluna(nome: str) -> str:
+  sem_acentos = remover_acentos(nome or "")
+  return "".join(ch for ch in sem_acentos.upper() if ch.isalnum())
+
+
+def montar_url_planilha_csv(sheet_id: str) -> str:
+  return f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
+
+
+def normalizar_data_ddmmyyyy(valor: str) -> str:
+  texto = (valor or "").strip()
+  if not texto:
+    return ""
+
+  formatos_entrada = [
+    "%Y-%m-%d",
+    "%Y/%m/%d",
+    "%d/%m/%Y",
+    "%d-%m-%Y",
+  ]
+
+  for formato in formatos_entrada:
+    try:
+      data = dt.datetime.strptime(texto, formato)
+      return data.strftime("%d/%m/%Y")
+    except ValueError:
+      continue
+
+  return texto
+
+
+def sincronizar_csv_com_planilha(caminho_csv: str, contexto_ssl) -> int:
+  url_csv = montar_url_planilha_csv(SPREADSHEET_ID)
+
+  try:
+    with urlopen(url_csv, timeout=30, context=contexto_ssl) as resposta:
+      conteudo = resposta.read().decode("utf-8-sig")
+  except HTTPError as exc:
+    raise RuntimeError(f"Falha HTTP ao ler planilha: {exc.code}") from exc
+  except URLError as exc:
+    raise RuntimeError(f"Erro de rede ao ler planilha: {exc.reason}") from exc
+
+  leitor = csv.DictReader(io.StringIO(conteudo))
+  registros_saida: list[dict[str, str]] = []
+
+  for linha in leitor:
+    normalizada = {
+      normalizar_nome_coluna(chave): (valor or "").strip()
+      for chave, valor in linha.items()
+      if chave is not None
+    }
+
+    registro = {
+      "DATA": normalizar_data_ddmmyyyy(normalizada.get("DATAINICIO", "")),
+      "DATAFINAL": normalizar_data_ddmmyyyy(normalizada.get("DATAFIM", "")),
+      "DESCRICAO": normalizada.get("DESCRICAO", ""),
+      "ENDERECO": normalizada.get("ENDERECOLOCAL", ""),
+      "ESTIMATIVAPUBLICO": normalizada.get("ESTIMATIVAPUBLICO", ""),
+      "NOMELOCAL": normalizada.get("LOCAL", ""),
+      "RESPONSAVEL": normalizada.get("ENTIDADE", ""),
+    }
+
+    if not any(registro.values()):
+      continue
+
+    registros_saida.append(registro)
+
+  if not registros_saida:
+    raise RuntimeError("A planilha nao retornou registros para sincronizacao do CSV.")
+
+  with open(caminho_csv, "w", encoding="utf-8", newline="") as arquivo:
+    escritor = csv.DictWriter(
+      arquivo,
+      fieldnames=CSV_FIELDS,
+      delimiter=";",
+      lineterminator="\n",
+    )
+    escritor.writeheader()
+    escritor.writerows(registros_saida)
+
+  return len(registros_saida)
 
 
 MESES_PT_BR = {
@@ -986,6 +1081,13 @@ def main() -> int:
 
     args = parser.parse_args()
     contexto_ssl = criar_contexto_ssl(args.insecure)
+
+    try:
+      total_sincronizado = sincronizar_csv_com_planilha(args.csv_path, contexto_ssl)
+      print(f"CSV sincronizado com a planilha: {total_sincronizado} registros.")
+    except RuntimeError as exc:
+      print(f"Erro ao sincronizar planilha para CSV: {exc}", file=sys.stderr)
+      return 1
 
     try:
       registros = padronizar_registros(ler_registros_csv_local(args.csv_path))
