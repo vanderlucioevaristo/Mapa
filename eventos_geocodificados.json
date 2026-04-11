@@ -22,5 +22,29 @@
     "meses_ano_chaves": [
       "2026-04"
     ]
+  },
+  {
+    "DATA": "18/04/2026",
+    "DATAFINAL": "13/04/2026",
+    "DESCRICAO": "EVENTO TESTE",
+    "ENDERECO": "PRAÇA DA LIBERDADE",
+    "NOMLOCAL": "PRAÇA DA LIBERDADE",
+    "ESTIMATIVA PUBLICO": "15000",
+    "latitude": 41.146511,
+    "longitude": -8.6117243,
+    "endereco_encontrado": "Quiosque do Serviço de Transportes Colectivos do Porto;Quiosque da Praça da Liberdade (S.T.C.P.), Praça da Liberdade, Baixa do Porto, Fradelos, Zona Histórica do Porto, Cedofeita, Santo Ildefonso, Sé, Miragaia, São Nicolau e Vitória, Porto, 4000-322, Portugal",
+    "geocodificado": true,
+    "publico_valor": 15000,
+    "faixa_publico": "Grande porte",
+    "cor_marcador": "#c53030",
+    "raio_marcador": 14.4,
+    "mes_numero": 4,
+    "mes_nome": "Abril",
+    "ano_numero": 2026,
+    "data_ordem": "2026-04-18",
+    "data_final_ordem": "2026-04-18",
+    "meses_ano_chaves": [
+      "2026-04"
+    ]
   }
 ]

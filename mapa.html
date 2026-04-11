@@ -223,8 +223,8 @@
       <p class="eyebrow"> </p>
       <h1>Mapa de Calor dos Eventos em Belo Horizonte</h1>
       <div class="summary">
-        <div>Total de registros: <span id="summary-total">1</span></div>
-        <div>Enderecos geocodificados: <span id="summary-geocoded">1</span></div>
+        <div>Total de registros: <span id="summary-total">2</span></div>
+        <div>Enderecos geocodificados: <span id="summary-geocoded">2</span></div>
         <div class="legend">
           <div class="legend-item"><span class="legend-swatch" style="background:#2f855a"></span> Pequeno porte ate 1.000 pessoas</div>
           <div class="legend-item"><span class="legend-swatch" style="background:#d97706"></span> Medio porte ate 5.000 pessoas</div>
@@ -250,6 +250,7 @@
       </div>
       <div class="event-list">
         <article class="card" data-event-index="0" data-month="4" data-year="2026" data-date-order="2026-04-11" style="border-left: 6px solid #c53030;"><div class="card-header"><div><h2>FESTIVAL SERTANEJO</h2><p class="card-date">11/04/2026</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Data inicial:</strong> 11/04/2026</p><p class="meta"><strong>Data final:</strong> 14/04/2026</p><p class="meta"><strong>Mes:</strong> Abril</p><p class="meta"><strong>Ano:</strong> 2026</p><p class="meta"><strong>Local:</strong> MINEIRÃO</p><p class="meta"><strong>Endereco:</strong> Avenida Antônio Abrahão Caram, 1001,Pampulha, Belo Horizonte/MG.</p><p class="meta"><strong>Publico:</strong> 50000</p><p class="meta"><strong>Faixa:</strong> Grande porte</p><span class="status">Localizado no mapa</span></div></article>
+<article class="card" data-event-index="1" data-month="4" data-year="2026" data-date-order="2026-04-18" style="border-left: 6px solid #c53030;"><div class="card-header"><div><h2>EVENTO TESTE</h2><p class="card-date">18/04/2026</p></div><span class="card-chevron">&#9660;</span></div><div class="card-details"><p class="meta"><strong>Data inicial:</strong> 18/04/2026</p><p class="meta"><strong>Data final:</strong> 13/04/2026</p><p class="meta"><strong>Mes:</strong> Abril</p><p class="meta"><strong>Ano:</strong> 2026</p><p class="meta"><strong>Local:</strong> PRAÇA DA LIBERDADE</p><p class="meta"><strong>Endereco:</strong> PRAÇA DA LIBERDADE</p><p class="meta"><strong>Publico:</strong> 15000</p><p class="meta"><strong>Faixa:</strong> Grande porte</p><span class="status">Localizado no mapa</span></div></article>
       </div>
     </aside>
     <main id="map"></main>
@@ -257,8 +258,8 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
-    const registros = [{"DATA": "11/04/2026", "DATAFINAL": "14/04/2026", "DESCRICAO": "FESTIVAL SERTANEJO", "ENDERECO": "Avenida Antônio Abrahão Caram, 1001,Pampulha, Belo Horizonte/MG.", "NOMLOCAL": "MINEIRÃO", "ESTIMATIVA PUBLICO": "50000", "latitude": -19.8659115, "longitude": -43.9710434, "endereco_encontrado": "Estádio Governador Magalhães Pinto, 1001, Avenida Antônio Abrahão Caram, São Luiz, Campus UFMG, Pampulha, Belo Horizonte, Minas Gerais, 31275-000, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 50000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 15.4, "mes_numero": 4, "mes_nome": "Abril", "ano_numero": 2026, "data_ordem": "2026-04-11", "data_final_ordem": "2026-04-14", "meses_ano_chaves": ["2026-04"]}];
-    const map = L.map('map').setView([-19.8659115, -43.9710434], 12);
+    const registros = [{"DATA": "11/04/2026", "DATAFINAL": "14/04/2026", "DESCRICAO": "FESTIVAL SERTANEJO", "ENDERECO": "Avenida Antônio Abrahão Caram, 1001,Pampulha, Belo Horizonte/MG.", "NOMLOCAL": "MINEIRÃO", "ESTIMATIVA PUBLICO": "50000", "latitude": -19.8659115, "longitude": -43.9710434, "endereco_encontrado": "Estádio Governador Magalhães Pinto, 1001, Avenida Antônio Abrahão Caram, São Luiz, Campus UFMG, Pampulha, Belo Horizonte, Minas Gerais, 31275-000, Brasil, Região Geográfica Intermediária de Belo Horizonte", "geocodificado": true, "publico_valor": 50000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 15.4, "mes_numero": 4, "mes_nome": "Abril", "ano_numero": 2026, "data_ordem": "2026-04-11", "data_final_ordem": "2026-04-14", "meses_ano_chaves": ["2026-04"]}, {"DATA": "18/04/2026", "DATAFINAL": "13/04/2026", "DESCRICAO": "EVENTO TESTE", "ENDERECO": "PRAÇA DA LIBERDADE", "NOMLOCAL": "PRAÇA DA LIBERDADE", "ESTIMATIVA PUBLICO": "15000", "latitude": 41.146511, "longitude": -8.6117243, "endereco_encontrado": "Quiosque do Serviço de Transportes Colectivos do Porto;Quiosque da Praça da Liberdade (S.T.C.P.), Praça da Liberdade, Baixa do Porto, Fradelos, Zona Histórica do Porto, Cedofeita, Santo Ildefonso, Sé, Miragaia, São Nicolau e Vitória, Porto, 4000-322, Portugal", "geocodificado": true, "publico_valor": 15000, "faixa_publico": "Grande porte", "cor_marcador": "#c53030", "raio_marcador": 14.4, "mes_numero": 4, "mes_nome": "Abril", "ano_numero": 2026, "data_ordem": "2026-04-18", "data_final_ordem": "2026-04-18", "meses_ano_chaves": ["2026-04"]}];
+    const map = L.map('map').setView([10.640299749999999, -26.29138385], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -360,7 +361,7 @@
       if (boundsFiltrados.length > 0) {
         map.fitBounds(boundsFiltrados, { padding: [30, 30] });
       } else {
-        map.setView([-19.8659115, -43.9710434], 12);
+        map.setView([10.640299749999999, -26.29138385], 12);
       }
     }
 
