@@ -1,0 +1,66 @@
+/*
+Theme Name: Visite Belo Horizonte
+Theme URI: https://visitebelohorizonte.com/
+Author: Digital Estratégia
+Author URI: https://digitalestrategia.com
+Description: Tema para Visite Belo Horizonte.
+Version: 3.0
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+*/
+body{
+    background-color: #fff;
+    margin: 0;
+}
+
+.container{
+    background-color: #fff;
+}
+
+.menu-area-associado {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu-area-associado .menu-item {
+
+}
+
+.menu-area-associado .menu-item a {
+    color: #000;
+    text-decoration: none;
+    display: block;
+	    background: #fff;
+    text-align: center;
+    padding: 12px;
+    font-size: 15px;
+	border: 1px solid #A9A9A952
+}
+
+.menu-area-associado .menu-item.ativo a, .menu-area-associado .menu-item:hover a {
+    background: #000b33; /* cor azul escura igual imagem */
+    color: #FFD700;      /* amarelo dourado */
+    font-weight: bold;
+}
+.menu-area-associado .menu-item.ativo a {
+    color: #FFD700;
+}
+
+.tml-login label, .tml-rememberme-wrap, .tml-links{
+	display:none !important
+}
+
+.tml-login input{
+    padding: 10px;
+    background-color: #fff;
+    color: #717378;
+   border: 1px solid #413E3E !important
+}
+.tml-login .tml-button{
+    background: #000000 !important;
+    width: auto !important;
+    color: #FED141 !important;
+    font-weight: 700;
+    padding: 5px 40px !important
+}
