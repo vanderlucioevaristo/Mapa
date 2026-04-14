@@ -12,8 +12,8 @@
 
     :root {
       --sidebar-w: 240px;
-      --navy: #ffffff;
-      --navy-mid: #ffffff;
+      --navy: #000b33;
+      --navy-mid: #001a6e;
       --gold: #FED141;
       --gold-dark: #c9a500;
       --ink: #1a1f36;
@@ -61,12 +61,6 @@
       border-bottom: 1px solid rgba(254,209,65,.18);
       flex-shrink: 0;
     }
-    .sidebar-brand-logo {
-      display: block;
-      width: 140px;
-      max-width: 100%;
-      height: auto;
-    }
     .sidebar-brand-badge {
       display: inline-block;
       background: var(--gold);
@@ -85,12 +79,12 @@
       font-family: "Montserrat", sans-serif;
       font-weight: 800;
       font-size: 20px;
-      color: #000;
+      color: var(--gold);
       white-space: nowrap;
     }
     .sidebar-brand-sub {
       font-size: 11px;
-      color: rgba(0,0,0,.65);
+      color: rgba(248,250,252,.55);
       margin-top: 2px;
       white-space: nowrap;
     }
@@ -101,7 +95,7 @@
       font-weight: 700;
       letter-spacing: .12em;
       text-transform: uppercase;
-      color: rgba(0,0,0,.65);
+      color: rgba(254,209,65,.55);
       padding: 8px 18px 4px;
       white-space: nowrap;
     }
@@ -114,7 +108,7 @@
       border: none;
       background: none;
       text-align: left;
-      color: rgba(0,0,0,.88);
+      color: rgba(248,250,252,.82);
       font-family: "Outfit", sans-serif;
       font-size: 14px;
       font-weight: 500;
@@ -126,8 +120,8 @@
       position: relative;
       z-index: 1;
     }
-    .nav-item:hover { background: rgba(254,209,65,.10); color: #000; }
-    .nav-item.active { background: rgba(254,209,65,.18); color: #000; font-weight: 600; }
+    .nav-item:hover { background: rgba(254,209,65,.10); color: #fff; }
+    .nav-item.active { background: rgba(254,209,65,.18); color: var(--gold); font-weight: 600; }
     .nav-item.active::before {
       content: "";
       position: absolute;
@@ -144,7 +138,7 @@
       padding: 12px 18px 16px;
       border-top: 1px solid rgba(254,209,65,.14);
       font-size: 11px;
-      color: rgba(0,0,0,.55);
+      color: rgba(248,250,252,.35);
       white-space: nowrap;
     }
 
@@ -182,9 +176,9 @@
       box-shadow: 0 2px 10px rgba(0,11,51,.22);
       z-index: 10;
     }
-    #hamburger { display: none; background: none; border: none; color: #000; font-size: 22px; cursor: pointer; padding: 4px; line-height: 1; }
-    #topbar-title { font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 15px; color: #000; }
-    #topbar-breadcrumb { font-size: 13px; color: rgba(0,0,0,.65); margin-left: 4px; }
+    #hamburger { display: none; background: none; border: none; color: var(--gold); font-size: 22px; cursor: pointer; padding: 4px; line-height: 1; }
+    #topbar-title { font-family: "Montserrat", sans-serif; font-weight: 700; font-size: 15px; color: var(--gold); }
+    #topbar-breadcrumb { font-size: 13px; color: rgba(248,250,252,.55); margin-left: 4px; }
     #topbar-breadcrumb::before { content: "/ "; margin-right: 4px; }
 
     #content-area { flex: 1; position: relative; overflow: hidden; }
@@ -217,14 +211,8 @@
       width: 80px; height: 80px; border-radius: 20px;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 8px 32px rgba(0,11,51,.22);
-      padding: 10px;
     }
-    .welcome-logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    .welcome-title { font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 28px; color: #000; }
+    .welcome-title { font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 28px; color: var(--navy); }
     .welcome-subtitle { font-size: 15px; color: var(--muted); max-width: 420px; line-height: 1.6; }
     .welcome-cards { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
     .welcome-card {
@@ -263,7 +251,7 @@
       font-size: 14px;
       font-weight: 800;
       letter-spacing: .03em;
-      color: #000;
+      color: var(--navy);
       text-transform: uppercase;
     }
     .upcoming-controls {
@@ -385,7 +373,9 @@
   <aside id="sidebar">
     <button id="sidebar-toggle" title="Recolher menu">&#8249;</button>
     <div class="sidebar-brand">
-      <img class="sidebar-brand-logo" src="https://visitebelohorizonte.com/wp-content/uploads/2025/07/LOGO-1.svg" alt="Visite Belo Horizonte">
+      <div class="sidebar-brand-badge">Visite BH</div>
+      <div class="sidebar-brand-title">Eventos</div>
+      <div class="sidebar-brand-sub">Gerenciamento de Eventos</div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Navegação</div>
@@ -405,9 +395,6 @@
       <button class="nav-item" data-page="cadastro" onclick="showPage('cadastro')">
         <span class="nav-icon">📝</span><span class="nav-label">Cadastro de Eventos</span>
       </button>
-      <button class="nav-item" data-page="gerenciar" onclick="showPage('gerenciar')">
-        <span class="nav-icon">🛠️</span><span class="nav-label">Gerenciar Eventos</span>
-      </button>
     </nav>
     <div class="sidebar-footer">&copy; 2026 Vander &middot; Eventos BH</div>
   </aside>
@@ -420,7 +407,9 @@
     </header>
     <div id="content-area">
       <div id="welcome">
-        <div class="welcome-title">Bem-vindo</div>
+        <div class="welcome-logo">V</div>
+        <div class="welcome-title">Bem-vindo, Vander!</div>
+        <div class="welcome-subtitle">Selecione uma ferramenta no menu lateral ou clique em um dos acessos rápidos abaixo.</div>
         <section class="upcoming-section" aria-label="Próximos eventos">
           <div class="upcoming-header">
             <div class="upcoming-title">Próximos Eventos</div>
@@ -439,7 +428,6 @@
       <iframe id="frame-calendario" class="page-frame" src="" title="Calendário de Eventos"></iframe>
         <iframe id="frame-calendario_v2" class="page-frame" src="" title="Calendário por Local"></iframe>
       <iframe id="frame-cadastro" class="page-frame" src="" title="Cadastro de Eventos"></iframe>
-      <iframe id="frame-gerenciar" class="page-frame" src="" title="Gerenciar Eventos"></iframe>
     </div>
   </div>
 
@@ -456,7 +444,6 @@
       calendario: { label: 'Calendário de Eventos',   frame: 'frame-calendario', src: 'calendario.html' },
       calendario_v2: { label: 'Calendário por Local',  frame: 'frame-calendario_v2', src: 'calendario_v2.html' },
       cadastro: { label: 'Cadastro de Eventos', frame: 'frame-cadastro', src: 'cadastro_eventos.html' },
-      gerenciar: { label: 'Gerenciar Eventos', frame: 'frame-gerenciar', src: 'gerenciar_eventos.html' },
     };
     const loadedFrames = new Set();
 
@@ -467,7 +454,7 @@
       if (partes.length !== 3) return null;
 
       const dia = parseInt(partes[0], 10);
-      const mesBruto = partes[1].trim();
+      const mesTxt = partes[1].slice(0, 3).toUpperCase();
       const ano = parseInt(partes[2], 10);
 
       const meses = {
@@ -475,15 +462,7 @@
         JUL: 6, AGO: 7, SET: 8, OUT: 9, NOV: 10, DEZ: 11,
       };
 
-      let mes;
-      if (/^\d{1,2}$/.test(mesBruto)) {
-        const mesNumero = parseInt(mesBruto, 10);
-        mes = mesNumero >= 1 && mesNumero <= 12 ? mesNumero - 1 : undefined;
-      } else {
-        const mesTxt = mesBruto.slice(0, 3).toUpperCase();
-        mes = meses[mesTxt];
-      }
-
+      const mes = meses[mesTxt];
       if (!Number.isInteger(dia) || !Number.isInteger(ano) || mes === undefined) return null;
       return new Date(ano, mes, dia);
     }
@@ -522,8 +501,7 @@
       return eventos
         .map((ev) => {
           const inicio = parseDataCsv(ev.DATA);
-          const fimOriginal = parseDataCsv(ev.DATAFINAL) || inicio;
-          const fim = inicio && fimOriginal && fimOriginal < inicio ? inicio : fimOriginal;
+          const fim = parseDataCsv(ev.DATAFINAL) || inicio;
           return {
             descricao: ev.DESCRICAO || 'Evento sem descrição',
             local: ev.NOMELOCAL || ev.LOCAL || 'Local não informado',

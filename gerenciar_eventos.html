@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gerenciar Eventos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #ffffff;
+      --navy-mid: #ffffff;
+      --gold: #fed141;
+      --bg: #f4f5f9;
+      --panel: #ffffff;
+      --line: rgba(0, 11, 51, 0.12);
+      --text: #1a1f36;
+      --muted: #64748b;
+      --ok: #0f766e;
+      --error: #b91c1c;
+      --danger: #991b1b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: "Outfit", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 5% 0%, rgba(254, 209, 65, 0.15), transparent 30%),
+        radial-gradient(circle at 100% 100%, rgba(0, 26, 110, 0.08), transparent 28%),
+        var(--bg);
+      min-height: 100vh;
+    }
+
+    .wrap { max-width: 1280px; margin: 0 auto; }
+
+    .hero {
+      background: linear-gradient(140deg, var(--navy) 0%, var(--navy-mid) 100%);
+      border-radius: 18px;
+      color: #f8fafc;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 28px rgba(0, 11, 51, 0.22);
+      border: 1px solid rgba(254, 209, 65, 0.25);
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--gold);
+      color: var(--navy);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: "Montserrat", sans-serif;
+      margin-bottom: 10px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 800;
+      font-family: "Montserrat", sans-serif;
+      color: var(--gold);
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: rgba(248, 250, 252, 0.88);
+      line-height: 1.5;
+      max-width: 760px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(340px, 0.9fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--navy);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 6px 24px rgba(0, 11, 51, 0.08);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .card-title {
+      font-family: "Montserrat", sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .meta {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .search {
+      flex: 1;
+      min-width: 240px;
+      border: 1px solid #c9d2e7;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+
+    .search:focus,
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #315ae6;
+      box-shadow: 0 0 0 3px rgba(49, 90, 230, 0.14);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-family: "Montserrat", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+    .btn-primary { background: var(--navy); color: var(--gold); box-shadow: 0 4px 16px rgba(0, 11, 51, 0.2); }
+    .btn-secondary { background: #e5e7eb; color: #334155; }
+    .btn-danger { background: #fee2e2; color: var(--danger); }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: var(--navy);
+      color: var(--gold);
+      padding: 12px;
+      text-align: left;
+      font-family: "Montserrat", sans-serif;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    tbody td {
+      padding: 12px;
+      border-top: 1px solid var(--line);
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    tbody tr:hover { background: #f8fbff; }
+
+    .event-name {
+      font-weight: 600;
+      color: var(--navy);
+      min-width: 220px;
+    }
+
+    .actions-cell {
+      width: 190px;
+      white-space: nowrap;
+    }
+
+    .actions-inline {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .field-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #27325a;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid #c9d2e7;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea { min-height: 96px; resize: vertical; }
+
+    .editor-empty {
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      color: var(--muted);
+      background: #f8fafc;
+      font-size: 14px;
+    }
+
+    .status {
+      min-height: 22px;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .status.ok { color: var(--ok); }
+    .status.error { color: var(--error); }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 14px; }
+      .hero h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <span class="hero-badge">Visite BH</span>
+      <h1>Gerenciar Eventos Existentes</h1>
+      <p>Consulte os eventos do CSV local, edite os dados quando necessario e exclua registros que nao devam mais aparecer no painel.</p>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Lista de eventos</div>
+            <div id="list-meta" class="meta">Carregando eventos...</div>
+          </div>
+          <button id="reload-btn" class="btn btn-secondary" type="button">Atualizar lista</button>
+        </div>
+
+        <div class="toolbar">
+          <input id="search-input" class="search" type="search" placeholder="Buscar por descricao, local, endereco ou responsavel">
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Periodo</th>
+                <th>Local</th>
+                <th>Endereco</th>
+                <th>Publico</th>
+                <th>Responsavel</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="events-body">
+              <tr><td colspan="7" class="empty">Carregando eventos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Editor</div>
+            <div class="meta">Selecione um evento para editar os dados.</div>
+          </div>
+        </div>
+
+        <div id="editor-empty" class="editor-empty">Nenhum evento selecionado.</div>
+
+        <form id="edit-form" hidden>
+          <div class="field-list">
+            <div class="field">
+              <label for="descricao">Descricao</label>
+              <textarea id="descricao" required></textarea>
+            </div>
+
+            <div class="field">
+              <label for="nomeLocal">Local</label>
+              <input id="nomeLocal" type="text" required>
+            </div>
+
+            <div class="field">
+              <label for="endereco">Endereco</label>
+              <textarea id="endereco" required></textarea>
+            </div>
+
+            <div class="field">
+              <label for="data">Data inicial</label>
+              <input id="data" type="date" required>
+            </div>
+
+            <div class="field">
+              <label for="dataFinal">Data final</label>
+              <input id="dataFinal" type="date">
+            </div>
+
+            <div class="field">
+              <label for="estimativaPublico">Publico estimado</label>
+              <input id="estimativaPublico" type="text">
+            </div>
+
+            <div class="field">
+              <label for="responsavel">Responsavel</label>
+              <input id="responsavel" type="text">
+            </div>
+          </div>
+
+          <div class="card-head" style="margin-top: 16px; margin-bottom: 0;">
+            <div class="meta" id="selected-meta"></div>
+            <div class="actions-inline">
+              <button id="cancel-btn" class="btn btn-secondary" type="button">Cancelar</button>
+              <button id="save-btn" class="btn btn-primary" type="submit">Salvar alteracoes</button>
+            </div>
+          </div>
+        </form>
+
+        <div id="status" class="status" aria-live="polite"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      eventos: [],
+      filtro: '',
+      selecionadoId: null,
+      carregando: false,
+    };
+
+    const bodyEl = document.getElementById('events-body');
+    const metaEl = document.getElementById('list-meta');
+    const searchEl = document.getElementById('search-input');
+    const statusEl = document.getElementById('status');
+    const formEl = document.getElementById('edit-form');
+    const editorEmptyEl = document.getElementById('editor-empty');
+    const selectedMetaEl = document.getElementById('selected-meta');
+    const saveBtn = document.getElementById('save-btn');
+    const reloadBtn = document.getElementById('reload-btn');
+
+    function setStatus(message, kind) {
+      statusEl.textContent = message || '';
+      statusEl.classList.remove('ok', 'error');
+      if (kind) statusEl.classList.add(kind);
+    }
+
+    function paraInputDate(valor) {
+      const texto = (valor || '').trim();
+      if (!texto) return '';
+      const partes = texto.split('/');
+      if (partes.length !== 3) return '';
+      return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+    }
+
+    function formatarPeriodo(evento) {
+      if (!evento.dataFinal || evento.dataFinal === evento.data) return evento.data || '-';
+      return `${evento.data} ate ${evento.dataFinal}`;
+    }
+
+    function getEventosFiltrados() {
+      const termo = state.filtro.trim().toLowerCase();
+      if (!termo) return state.eventos;
+
+      return state.eventos.filter((evento) => (
+        [
+          evento.descricao,
+          evento.nomeLocal,
+          evento.endereco,
+          evento.responsavel,
+          evento.estimativaPublico,
+          evento.data,
+          evento.dataFinal,
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase()
+          .includes(termo)
+      ));
+    }
+
+    function preencherEditor(evento) {
+      state.selecionadoId = evento.id;
+      editorEmptyEl.hidden = true;
+      formEl.hidden = false;
+      document.getElementById('descricao').value = evento.descricao || '';
+      document.getElementById('nomeLocal').value = evento.nomeLocal || '';
+      document.getElementById('endereco').value = evento.endereco || '';
+      document.getElementById('data').value = paraInputDate(evento.data);
+      document.getElementById('dataFinal').value = paraInputDate(evento.dataFinal);
+      document.getElementById('estimativaPublico').value = evento.estimativaPublico || '';
+      document.getElementById('responsavel').value = evento.responsavel || '';
+      selectedMetaEl.textContent = `Editando registro #${evento.id + 1}`;
+    }
+
+    function limparEditor() {
+      state.selecionadoId = null;
+      formEl.reset();
+      formEl.hidden = true;
+      editorEmptyEl.hidden = false;
+      selectedMetaEl.textContent = '';
+    }
+
+    function renderTabela() {
+      const eventos = getEventosFiltrados();
+      metaEl.textContent = `${eventos.length} evento(s) exibido(s) de ${state.eventos.length}`;
+
+      if (!eventos.length) {
+        bodyEl.innerHTML = '<tr><td colspan="7" class="empty">Nenhum evento encontrado para o filtro informado.</td></tr>';
+        return;
+      }
+
+      bodyEl.innerHTML = eventos.map((evento) => `
+        <tr>
+          <td class="event-name">${escapeHtml(evento.descricao || '-')}</td>
+          <td>${escapeHtml(formatarPeriodo(evento))}</td>
+          <td>${escapeHtml(evento.nomeLocal || '-')}</td>
+          <td>${escapeHtml(evento.endereco || '-')}</td>
+          <td>${escapeHtml(evento.estimativaPublico || '-')}</td>
+          <td>${escapeHtml(evento.responsavel || '-')}</td>
+          <td class="actions-cell">
+            <div class="actions-inline">
+              <button class="btn btn-secondary" type="button" data-action="edit" data-id="${evento.id}">Editar</button>
+              <button class="btn btn-danger" type="button" data-action="delete" data-id="${evento.id}">Excluir</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function escapeHtml(valor) {
+      return String(valor)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    async function carregarEventos() {
+      state.carregando = true;
+      reloadBtn.disabled = true;
+      bodyEl.innerHTML = '<tr><td colspan="7" class="empty">Carregando eventos...</td></tr>';
+
+      try {
+        const response = await fetch('/api/eventos/local', { cache: 'no-store' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+          throw new Error(data.erro || 'Falha ao listar eventos.');
+        }
+
+        state.eventos = Array.isArray(data.eventos) ? data.eventos : [];
+        if (state.selecionadoId !== null) {
+          const atual = state.eventos.find((evento) => evento.id === state.selecionadoId);
+          if (atual) {
+            preencherEditor(atual);
+          } else {
+            limparEditor();
+          }
+        }
+        renderTabela();
+      } catch (error) {
+        bodyEl.innerHTML = `<tr><td colspan="7" class="empty">${escapeHtml(error.message || 'Nao foi possivel carregar os eventos.')}</td></tr>`;
+        metaEl.textContent = 'Erro ao carregar eventos';
+      } finally {
+        state.carregando = false;
+        reloadBtn.disabled = false;
+      }
+    }
+
+    async function salvarEdicao(event) {
+      event.preventDefault();
+      if (state.selecionadoId === null) return;
+      if (!formEl.reportValidity()) return;
+
+      const payload = {
+        descricao: document.getElementById('descricao').value.trim(),
+        nomeLocal: document.getElementById('nomeLocal').value.trim(),
+        endereco: document.getElementById('endereco').value.trim(),
+        data: document.getElementById('data').value,
+        dataFinal: document.getElementById('dataFinal').value,
+        estimativaPublico: document.getElementById('estimativaPublico').value.trim(),
+        responsavel: document.getElementById('responsavel').value.trim(),
+      };
+
+      saveBtn.disabled = true;
+      setStatus('Salvando alteracoes...', null);
+
+      try {
+        const response = await fetch(`/api/eventos/local/${state.selecionadoId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+          throw new Error(data.erro || 'Falha ao salvar alteracoes.');
+        }
+
+        setStatus(data.mensagem || 'Evento atualizado com sucesso.', 'ok');
+        await carregarEventos();
+      } catch (error) {
+        setStatus(error.message || 'Erro inesperado ao salvar.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+      }
+    }
+
+    async function excluirEvento(eventoId) {
+      const evento = state.eventos.find((item) => item.id === eventoId);
+      if (!evento) return;
+
+      const confirmado = window.confirm(`Excluir o evento "${evento.descricao}"? Esta acao nao pode ser desfeita.`);
+      if (!confirmado) return;
+
+      setStatus('Excluindo evento...', null);
+
+      try {
+        const response = await fetch(`/api/eventos/local/${eventoId}`, { method: 'DELETE' });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+          throw new Error(data.erro || 'Falha ao excluir evento.');
+        }
+
+        if (state.selecionadoId === eventoId) limparEditor();
+        setStatus(data.mensagem || 'Evento excluido com sucesso.', 'ok');
+        await carregarEventos();
+      } catch (error) {
+        setStatus(error.message || 'Erro inesperado ao excluir.', 'error');
+      }
+    }
+
+    bodyEl.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+
+      const eventoId = Number(button.dataset.id);
+      const action = button.dataset.action;
+      const eventoSelecionado = state.eventos.find((item) => item.id === eventoId);
+
+      if (action === 'edit' && eventoSelecionado) {
+        setStatus('', null);
+        preencherEditor(eventoSelecionado);
+      }
+
+      if (action === 'delete') {
+        excluirEvento(eventoId);
+      }
+    });
+
+    searchEl.addEventListener('input', () => {
+      state.filtro = searchEl.value;
+      renderTabela();
+    });
+
+    reloadBtn.addEventListener('click', carregarEventos);
+    formEl.addEventListener('submit', salvarEdicao);
+    document.getElementById('cancel-btn').addEventListener('click', () => {
+      limparEditor();
+      setStatus('', null);
+    });
+
+    carregarEventos();
+  </script>
+</body>
+</html>

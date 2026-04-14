@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import os
 from datetime import datetime
 from typing import Any
@@ -12,8 +13,102 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 APPS_SCRIPT_URL = os.getenv("APPS_SCRIPT_URL", "").strip()
+APPS_SCRIPT_MUTATIONS_ENABLED = os.getenv("APPS_SCRIPT_MUTATIONS_ENABLED", "").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+CSV_PATH = os.path.join(BASE_DIR, "eventos_bh.csv")
+CSV_FIELDS = [
+    "DATA",
+    "DATAFINAL",
+    "DESCRICAO",
+    "ENDERECO",
+    "ESTIMATIVAPUBLICO",
+    "NOMELOCAL",
+    "RESPONSAVEL",
+]
 
 app = Flask(__name__, static_folder=BASE_DIR, static_url_path="")
+
+
+def _normalizar_data_para_csv(valor: str, *, obrigatoria: bool = False) -> str:
+    texto = (valor or "").strip()
+    if not texto:
+        if obrigatoria:
+            raise ValueError("DATA obrigatoria.")
+        return ""
+
+    for formato in ("%Y-%m-%d", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(texto, formato).strftime("%d/%m/%Y")
+        except ValueError:
+            continue
+
+    raise ValueError("Data invalida. Use AAAA-MM-DD ou DD/MM/AAAA.")
+
+
+def _ler_eventos_csv() -> list[dict[str, str]]:
+    if not os.path.exists(CSV_PATH):
+        return []
+
+    with open(CSV_PATH, "r", encoding="utf-8-sig", newline="") as arquivo:
+        leitor = csv.DictReader(arquivo, delimiter=";")
+        eventos: list[dict[str, str]] = []
+        for linha in leitor:
+            eventos.append({campo: (linha.get(campo) or "").strip() for campo in CSV_FIELDS})
+        return eventos
+
+
+def _escrever_eventos_csv(eventos: list[dict[str, str]]) -> None:
+    with open(CSV_PATH, "w", encoding="utf-8", newline="") as arquivo:
+        escritor = csv.DictWriter(arquivo, fieldnames=CSV_FIELDS, delimiter=";")
+        escritor.writeheader()
+        for evento in eventos:
+            escritor.writerow({campo: (evento.get(campo) or "").strip() for campo in CSV_FIELDS})
+
+
+def _serializar_evento(evento: dict[str, str], indice: int) -> dict[str, Any]:
+    return {
+        "id": indice,
+        "data": evento.get("DATA", ""),
+        "dataFinal": evento.get("DATAFINAL", ""),
+        "descricao": evento.get("DESCRICAO", ""),
+        "endereco": evento.get("ENDERECO", ""),
+        "estimativaPublico": evento.get("ESTIMATIVAPUBLICO", ""),
+        "nomeLocal": evento.get("NOMELOCAL", ""),
+        "responsavel": evento.get("RESPONSAVEL", ""),
+    }
+
+
+def _validar_payload_evento_local(payload: dict[str, Any]) -> dict[str, str]:
+    descricao = (payload.get("descricao") or "").strip()
+    nome_local = (payload.get("nomeLocal") or payload.get("local") or "").strip()
+    endereco = (payload.get("endereco") or payload.get("enderecoLocal") or "").strip()
+    estimativa_publico = (payload.get("estimativaPublico") or "").strip()
+    responsavel = (payload.get("responsavel") or payload.get("entidade") or "").strip()
+    data = _normalizar_data_para_csv(payload.get("data") or payload.get("dataInicio") or "", obrigatoria=True)
+    data_final = _normalizar_data_para_csv(payload.get("dataFinal") or payload.get("dataFim") or "")
+
+    if not descricao or not nome_local or not endereco:
+        raise ValueError("Preencha descricao, local e endereco.")
+
+    if data_final:
+        data_inicio_dt = datetime.strptime(data, "%d/%m/%Y")
+        data_final_dt = datetime.strptime(data_final, "%d/%m/%Y")
+        if data_final_dt < data_inicio_dt:
+            raise ValueError("DATAFINAL nao pode ser menor que DATA.")
+
+    return {
+        "DATA": data,
+        "DATAFINAL": data_final,
+        "DESCRICAO": descricao,
+        "ENDERECO": endereco,
+        "ESTIMATIVAPUBLICO": estimativa_publico,
+        "NOMELOCAL": nome_local,
+        "RESPONSAVEL": responsavel,
+    }
 
 
 def _validar_apps_script_url() -> None:
@@ -25,7 +120,7 @@ def _validar_apps_script_url() -> None:
         )
 
 
-def _post_apps_script(payload: dict[str, str]) -> dict[str, Any]:
+def _post_apps_script(payload: dict[str, Any]) -> dict[str, Any]:
     _validar_apps_script_url()
 
     resposta = requests.post(
@@ -49,6 +144,40 @@ def _post_apps_script(payload: dict[str, str]) -> dict[str, Any]:
     if isinstance(data, dict):
         return data
     return {"ok": True, "mensagem": "Registro enviado.", "raw": data}
+
+
+def _evento_csv_para_apps_script(evento: dict[str, str]) -> dict[str, str]:
+    return {
+        "DESCRICAO": evento.get("DESCRICAO", ""),
+        "LOCAL": evento.get("NOMELOCAL", ""),
+        "ENDERECOLOCAL": evento.get("ENDERECO", ""),
+        "DATAINICIO": evento.get("DATA", ""),
+        "DATAFIM": evento.get("DATAFINAL", ""),
+        "ENTIDADE": evento.get("RESPONSAVEL", ""),
+        "ESTIMATIVAPUBLICO": evento.get("ESTIMATIVAPUBLICO", ""),
+    }
+
+
+def _sincronizar_mutacao_planilha(
+    acao: str,
+    evento_anterior: dict[str, str],
+    evento_atualizado: dict[str, str] | None = None,
+) -> bool:
+    if not APPS_SCRIPT_MUTATIONS_ENABLED:
+        return False
+
+    payload: dict[str, Any] = {
+        "ACAO": acao,
+        "EVENTO_ANTERIOR": _evento_csv_para_apps_script(evento_anterior),
+    }
+    if evento_atualizado is not None:
+        payload["EVENTO_ATUALIZADO"] = _evento_csv_para_apps_script(evento_atualizado)
+
+    resultado = _post_apps_script(payload)
+    if resultado.get("ok") is False:
+        raise ValueError(resultado.get("erro", "Falha ao sincronizar alteracao na planilha."))
+
+    return True
 
 
 @app.get("/")
@@ -119,6 +248,66 @@ def salvar_evento() -> Any:
         )
 
     return jsonify({"ok": True, "mensagem": "Evento cadastrado com sucesso."}), 201
+
+
+@app.get("/api/eventos/local")
+def listar_eventos_local() -> Any:
+    eventos = _ler_eventos_csv()
+    return jsonify({"ok": True, "eventos": [_serializar_evento(evento, indice) for indice, evento in enumerate(eventos)]})
+
+
+@app.put("/api/eventos/local/<int:evento_id>")
+def atualizar_evento_local(evento_id: int) -> Any:
+    eventos = _ler_eventos_csv()
+    if evento_id < 0 or evento_id >= len(eventos):
+        return jsonify({"ok": False, "erro": "Evento nao encontrado."}), 404
+
+    payload = request.get_json(silent=True) or {}
+    try:
+        evento_anterior = dict(eventos[evento_id])
+        evento_atualizado = _validar_payload_evento_local(payload)
+        sincronizado_planilha = _sincronizar_mutacao_planilha(
+            "atualizar",
+            evento_anterior,
+            evento_atualizado,
+        )
+        eventos[evento_id] = evento_atualizado
+        _escrever_eventos_csv(eventos)
+    except ValueError as exc:
+        return jsonify({"ok": False, "erro": str(exc)}), 400
+    except OSError as exc:
+        return jsonify({"ok": False, "erro": "Falha ao salvar o CSV.", "detalhe": str(exc)}), 500
+    except Exception as exc:
+        return jsonify({"ok": False, "erro": "Falha ao sincronizar com a planilha.", "detalhe": str(exc)}), 502
+
+    mensagem = "Evento atualizado com sucesso."
+    if not sincronizado_planilha:
+        mensagem = "Evento atualizado no CSV local. Para sincronizar com a planilha, publique o Apps Script atualizado e ative APPS_SCRIPT_MUTATIONS_ENABLED."
+
+    return jsonify({"ok": True, "mensagem": mensagem, "sincronizadoPlanilha": sincronizado_planilha})
+
+
+@app.delete("/api/eventos/local/<int:evento_id>")
+def excluir_evento_local(evento_id: int) -> Any:
+    eventos = _ler_eventos_csv()
+    if evento_id < 0 or evento_id >= len(eventos):
+        return jsonify({"ok": False, "erro": "Evento nao encontrado."}), 404
+
+    try:
+        evento_anterior = dict(eventos[evento_id])
+        sincronizado_planilha = _sincronizar_mutacao_planilha("excluir", evento_anterior)
+        eventos.pop(evento_id)
+        _escrever_eventos_csv(eventos)
+    except OSError as exc:
+        return jsonify({"ok": False, "erro": "Falha ao salvar o CSV.", "detalhe": str(exc)}), 500
+    except Exception as exc:
+        return jsonify({"ok": False, "erro": "Falha ao sincronizar exclusao com a planilha.", "detalhe": str(exc)}), 502
+
+    mensagem = "Evento excluido com sucesso."
+    if not sincronizado_planilha:
+        mensagem = "Evento excluido no CSV local. Para sincronizar com a planilha, publique o Apps Script atualizado e ative APPS_SCRIPT_MUTATIONS_ENABLED."
+
+    return jsonify({"ok": True, "mensagem": mensagem, "sincronizadoPlanilha": sincronizado_planilha})
 
 
 @app.get("/<path:filename>")

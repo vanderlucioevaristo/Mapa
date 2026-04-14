@@ -24,27 +24,27 @@
     ]
   },
   {
-    "DATA": "18/04/2026",
-    "DATAFINAL": "13/04/2026",
-    "DESCRICAO": "EVENTO TESTE",
-    "ENDERECO": "PRAÇA DA LIBERDADE",
-    "NOMLOCAL": "PRAÇA DA LIBERDADE",
-    "ESTIMATIVA PUBLICO": "15000",
-    "latitude": 41.146511,
-    "longitude": -8.6117243,
-    "endereco_encontrado": "Quiosque do Serviço de Transportes Colectivos do Porto;Quiosque da Praça da Liberdade (S.T.C.P.), Praça da Liberdade, Baixa do Porto, Fradelos, Zona Histórica do Porto, Cedofeita, Santo Ildefonso, Sé, Miragaia, São Nicolau e Vitória, Porto, 4000-322, Portugal",
+    "DATA": "01/06/2026",
+    "DATAFINAL": "30/06/2026",
+    "DESCRICAO": "Arraial de Belo",
+    "ENDERECO": "Avenida dos Andradas, 201, Centro, Belo Horizonte - MG, 30120-010",
+    "NOMLOCAL": "Praça da Estação",
+    "ESTIMATIVA PUBLICO": "200000",
+    "latitude": -19.9217246,
+    "longitude": -43.9300194,
+    "endereco_encontrado": "Avenida dos Andradas, Santa Efigênia, Regional Centro-Sul, Belo Horizonte, Minas Gerais, Região Sudeste, 30150-222, Brasil, Região Geográfica Intermediária de Belo Horizonte",
     "geocodificado": true,
-    "publico_valor": 15000,
+    "publico_valor": 200000,
     "faixa_publico": "Grande porte",
     "cor_marcador": "#c53030",
-    "raio_marcador": 14.4,
-    "mes_numero": 4,
-    "mes_nome": "Abril",
+    "raio_marcador": 16.6,
+    "mes_numero": 6,
+    "mes_nome": "Junho",
     "ano_numero": 2026,
-    "data_ordem": "2026-04-18",
-    "data_final_ordem": "2026-04-18",
+    "data_ordem": "2026-06-01",
+    "data_final_ordem": "2026-06-30",
     "meses_ano_chaves": [
-      "2026-04"
+      "2026-06"
     ]
   }
 ]
